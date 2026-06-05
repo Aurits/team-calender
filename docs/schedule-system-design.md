@@ -24,9 +24,10 @@
 9. [Data Model](#9-data-model)
 10. [Technical Architecture](#10-technical-architecture)
 11. [Scope for the Alpha](#11-scope-for-the-alpha)
-12. [Rollout Plan](#12-rollout-plan)
-13. [Risks and How We Handle Them](#13-risks-and-how-we-handle-them)
-14. [Design Principles](#14-design-principles)
+12. [Future Modifications and Roadmap](#12-future-modifications-and-roadmap)
+13. [Rollout Plan](#13-rollout-plan)
+14. [Risks and How We Handle Them](#14-risks-and-how-we-handle-them)
+15. [Design Principles](#15-design-principles)
 
 ---
 
@@ -134,7 +135,7 @@ Everything that appears on the calendar is the same single thing: a **time block
   +-------------------------------------------+
   |  TIME BLOCK  (the one atom)               |
   |                                           |
-  |  Person   : Kevin                         |
+  |  Person    : Kevin                        |
   |  Task      : Construction Planning (L2)   |
   |  Note      : Draft the site layout (L3)   |
   |  When      : 10:00, 2 hours               |
@@ -207,32 +208,33 @@ All three pages share one Google Sheet, so there is nothing to sync and never tw
 
 ### 8.2 Page 1: Capture (members, daily, about 30 seconds)
 
-The everyday page. A member signs in with a PIN and records their plan with mostly taps and defaults.
+The everyday page. It works like a simple spreadsheet row list (the same feel as ClickUp). Each row is one time block, and a person can add several rows for the day in a few seconds. The PIN is entered once and remembered on the device, so the page opens already signed in.
 
 ```
-  +-----------------------------------------------+
-  |  CAPTURE                          [ Kevin v ] |
-  |-----------------------------------------------|
-  |  Enter PIN:  [ * * * * ]                       |
-  |                                               |
-  |  Task:     [ Construction Planning   v ]      |
-  |  Detail:   [ Draft the site layout      ]     |  (optional)
-  |  Start:    [ 10:00 ]   Duration: [ 2h v ]     |
-  |  Place:    [ Izumi ]   Priority: [ High v ]   |  (pre-filled)
-  |                                               |
-  |              [  Save block  ]                 |
-  |-----------------------------------------------|
-  |  Today:  09:00 Stand-up                        |
-  |          10:00-12:00  Construction Planning    |
-  |          17:30 Evening meeting                 |
-  +-----------------------------------------------+
+  +------------------------------------------------------------------------------------+
+  |  CAPTURE     Signed in as Kevin (PIN remembered)        Date: Thu 4 Jun     [ + ]  |
+  +------------------------------------------------------------------------------------+
+  |  Task                  | Detail (optional)   | Start | Dur | Place  | Priority |    |
+  |------------------------|---------------------|-------|-----|--------|----------|----|
+  |  Construction Plan.  v | Draft site layout   | 10:00 | 2h  | Izumi  | High   v |  x |
+  |  Documentation       v | Update game docs    | 13:00 | 1h  | Main   | Medium v |  x |
+  |  Ogasawara Prep      v | Pack equipment      | 14:30 | 2h  | Izumi  | High   v |  x |
+  |  + Add row ...                                                                      |
+  +------------------------------------------------------------------------------------+
+  |  Auto-added:  09:00 Stand-up      17:30 Evening meeting            [  Save day  ]   |
+  +------------------------------------------------------------------------------------+
 ```
+
+Why a horizontal row list:
+- A person sees their whole day on one line each, and can list three or more blocks at a glance.
+- Adding a block is one new row, not a new screen. This is what keeps it close to 30 seconds.
+- It reads like the calendar it feeds, so there is nothing new to learn.
 
 Helpers that make it fast:
 - The PIN loads the person's profile, so they never retype their name or role.
-- Task choice pre-fills priority and place.
-- Start time and place are suggested from recent entries.
-- The daily anchors (09:00 stand-up and 17:30 evening meeting) are filled in automatically.
+- Choosing a task in a row pre-fills that row's place and priority (shown in grey until changed).
+- Start time and place are suggested from the person's recent entries.
+- The daily anchors (09:00 stand-up and 17:30 evening meeting) are filled in automatically, so nobody types them.
 
 ### 8.3 Page 2: Management (managers)
 
@@ -376,11 +378,67 @@ We are honest about covering the essential part now and explaining the rest. As 
   Edit and delete a block             Real authentication and private data
 ```
 
-The deferred list is written down so nothing feels forgotten. It is a plan, not an oversight.
+The deferred list is written down so nothing feels forgotten. It is a plan, not an oversight. Each item is discussed in the next section.
 
 ---
 
-## 12. Rollout Plan
+## 12. Future Modifications and Roadmap
+
+The alpha is built so these additions slot in later without redesigning anything. Each one below explains what it adds, why it waits, and why it stays feasible.
+
+### 12.1 Outlook and calendar sync
+
+Today meetings are typed in by hand. A later version can connect to Microsoft Outlook (or Google Calendar) so meetings appear automatically as time blocks.
+
+- **Adds:** less manual entry and fewer missed meetings.
+- **Why it waits:** real account-by-account integration, sign-in, and handling changes or cancellations add risk to the 8 June date.
+- **Why it stays feasible:** a meeting is already modeled as an ordinary time block, so a synced meeting drops straight into the existing structure with no change to the model.
+
+### 12.2 Auto-rescheduling and AI time-blocking
+
+When a plan changes (for example an urgent meeting appears), the system could shift the affected blocks and propose a new plan, similar to apps like Motion. It could also suggest an order when tasks compete for the same time.
+
+- **Adds:** the schedule repairs itself instead of being fixed by hand.
+- **Why it waits:** this only helps once tasks are well organized and priorities are reliable. As the meeting stressed, intelligence on top of disorganized data makes things worse, not better.
+- **Why it stays feasible:** the data captured now (task, priority, time, place) is exactly the input such a feature needs.
+
+### 12.3 Carry-over of unfinished tasks
+
+If a block is not finished, the system could offer to move it to the next day so nothing is silently dropped.
+
+- **Adds:** unfinished work is never lost between days.
+- **Why it waits:** small enough that it is likely a fast follow soon after launch rather than a far-future item.
+- **Why it stays feasible:** it is a simple rule on existing entries (mark done or not done, then copy forward).
+
+### 12.4 Analytics, week and history views
+
+The alpha shows one day. Later we can add a week view, history, and simple reports, for example how much time went to each initiative, or where a person spent the week.
+
+- **Adds:** insight and trends on top of the daily picture.
+- **Why it waits:** it is read-only insight, valuable but not needed to make today visible.
+- **Why it stays feasible:** all of this is already stored in the Entries tab, so these views are just different ways of reading existing data, not new data to capture.
+
+### 12.5 Real authentication and privacy
+
+The PIN is a lightweight sign-in, good for an internal team, but it is identity, not security. A later version can add proper accounts (for example company sign-on) and private fields if the system ever holds sensitive data such as HR or salary information.
+
+- **Adds:** stronger access control and the ability to hold private data safely.
+- **Why it waits:** not needed for an internal scheduling tool today, and it adds setup overhead.
+- **Why it stays feasible:** the app can adopt a standard sign-in provider without changing the data model.
+
+### Suggested order
+
+```
+  Soon after launch        Later                       When the need appears
+  -----------------        -----                       ---------------------
+  Carry-over of tasks      Week and history views      Outlook / calendar sync
+                           Analytics and reports       Real authentication
+                                                       AI auto-rescheduling
+```
+
+---
+
+## 13. Rollout Plan
 
 ```
   Fri 5 Jun     Design approved by management
@@ -396,7 +454,7 @@ A new system only works if people actually use it. So go-live includes a short, 
 
 ---
 
-## 13. Risks and How We Handle Them
+## 14. Risks and How We Handle Them
 
 | Risk                                         | How we handle it                                                  |
 | :------------------------------------------- | :---------------------------------------------------------------- |
@@ -408,7 +466,7 @@ A new system only works if people actually use it. So go-live includes a short, 
 
 ---
 
-## 14. Design Principles
+## 15. Design Principles
 
 Three ideas guided every decision above.
 
