@@ -17,7 +17,7 @@
 2. [Where We Are Today](#2-where-we-are-today)
 3. [The Core Problem](#3-the-core-problem)
 4. [Goals and Non-Goals](#4-goals-and-non-goals)
-5. [Problems, Demands, and Priorities](#5-problems-demands-and-priorities)
+5. [Needs, Solutions, and Priorities](#5-needs-solutions-and-priorities)
 6. [How the System Thinks: The Model](#6-how-the-system-thinks-the-model)
 7. [Who Does What: Roles](#7-who-does-what-roles)
 8. [The Three Pages](#8-the-three-pages)
@@ -33,9 +33,9 @@
 
 ## 1. Executive Summary
 
-The team's daily information lives in too many places (Google Docs, SharePoint, Microsoft Loop), and none of them is reliably maintained. As a result, management cannot easily see where people are or what they are doing, and members struggle with shifting schedules and unclear priorities.
+The team already uses several capable tools (Google Docs, SharePoint, Microsoft Loop), each built for its own purpose. The daily picture naturally lives across a few of them, so there is a great opportunity to bring it together into one shared view. With everything in one place, it becomes easy to see where people are and what they are working on, and to adjust smoothly whenever a schedule or a priority changes.
 
-This system replaces that scattered picture with **one shared place that shows who is doing what, where, when, and how important it is, for today.**
+This system brings all of that together into **one shared place that shows who is doing what, where, when, and how important it is, for today.**
 
 It is built as three simple pages backed by a single Google Sheet:
 
@@ -55,18 +55,18 @@ The promise to each person is small: about **30 seconds a day** to record their 
 
 ## 2. Where We Are Today
 
-Today the same information is spread across three tools, each with a gap:
+Today the information is spread across three tools, each built for its own purpose:
 
 ```
   Google Docs            SharePoint              Microsoft Loop
  (Individual tasks)     (June Initiative)        (Tasks of the day)
         |                     |                        |
-  not maintained,      dashboards exist but      check system is
-  done tasks not       workstreams are not       weak, easy to
-  removed              organized                 lose track
+  personal task        organized for the        good for daily
+  lists, kept          initiative, less for     notes, less for
+  separately           daily who and where      seeing across all
 ```
 
-Nothing here is wrong on its own. The problem is that no single view brings them together, so the truth about "today" has to be reconstructed by hand, every day, by every person who needs it.
+Each tool does its own job well. The opportunity is simply to add one shared view on top, so the picture of "today" comes together in a single place instead of being gathered by hand.
 
 ---
 
@@ -74,7 +74,7 @@ Nothing here is wrong on its own. The problem is that no single view brings them
 
 The brief lists five problems. They look separate, but they share one root:
 
-> **There is no single, trustworthy place that shows who is doing what, where, when, and how important it is, for today.**
+> **There is no single, shared place that shows who is doing what, where, when, and how important it is, for today.**
 
 This reframing is the most important decision in the whole document, because it keeps the system small. We are not building five features. We are building **one source of truth and one way to see it.** Any idea that does not help us *capture the truth* or *show the truth* stays out of the first version.
 
@@ -92,19 +92,19 @@ This reframing is the most important decision in the whole document, because it 
 
 ---
 
-## 5. Problems, Demands, and Priorities
+## 5. Needs, Solutions, and Priorities
 
-For each problem in the brief, here is the concrete thing the system will do, and how important it is for the first version.
+Each need below comes straight from the brief's list of problems. Here is what the system does for each, and how important it is for the first version.
 
-| #  | Problem                          | Concrete demand the system meets                                            | Priority |
-| :- | :------------------------------- | :-------------------------------------------------------------------------- | :------: |
-| 1  | Don't know **where** people are  | Every time block records a place. The calendar shows location per person.   | **P0**   |
-| 2  | Don't know **what** people do    | Every block records its task and an optional sub-task, shown on the calendar.| **P0**   |
-| 3  | Schedules **change** suddenly    | Blocks can be edited, moved, or replaced in seconds.                         | **P1**   |
-| 4  | **Priorities** are unclear       | Priority is set once on the task and flows down to every block.             | **P0**   |
-| 5  | Tasks are **not organized**      | The Management page holds the one official task list to organize first.      | **P0**   |
+| #  | Need                                  | How the system meets it                                                     | Priority |
+| :- | :------------------------------------ | :-------------------------------------------------------------------------- | :------: |
+| 1  | A clear view of **where** people are  | Every time block records a place. The calendar shows location per person.   | **P0**   |
+| 2  | A clear view of **what** people do    | Every block records its task and an optional sub-task, shown on the calendar.| **P0**   |
+| 3  | Staying on track when plans **change** | A member can edit, move, or delete a block in seconds when plans change.    | **P0**   |
+| 4  | Clear, shared **priorities**          | Priority is set once on the task and flows down to every block.             | **P0**   |
+| 5  | One **organized** list of tasks       | The Management page holds the one official task list to organize first.      | **P0**   |
 
-> **P0** means non-negotiable for 8 June. **P1** means include if time allows, otherwise it follows shortly after.
+> All five are **P0**: essential for the 8 June launch. Lower-priority refinements live in the Deferred list (Section 11) and the Roadmap (Section 12).
 
 ---
 
@@ -218,7 +218,7 @@ The everyday page. It works like a simple spreadsheet row list (the same feel as
   |------------------------|---------------------|-------|-----|--------|----------|----|
   |  Construction Plan.  v | Draft site layout   | 10:00 | 2h  | Izumi  | High   v |  x |
   |  Documentation       v | Update game docs    | 13:00 | 1h  | Main   | Medium v |  x |
-  |  Ogasawara Prep      v | Pack equipment      | 14:30 | 2h  | Izumi  | High   v |  x |
+  |  Ogasawara Proj.     v | Pack equipment      | 14:30 | 2h  | Izumi  | High   v |  x |
   |  + Add row ...                                                                      |
   +------------------------------------------------------------------------------------+
   |  Auto-added:  09:00 Stand-up      17:30 Evening meeting            [  Save day  ]   |
@@ -255,7 +255,7 @@ The page where the official task list is built and kept in order.
   +-----------------------------------------------+
 ```
 
-This is the "organize first" surface that the meeting insisted on. It is also where priorities are decided in one place, which is exactly management's stated job.
+This is the "organize first" surface that the meeting emphasized. It is also where priorities are decided in one place, which is exactly management's stated job.
 
 ### 8.4 Page 3: Overview / Calendar (everyone)
 
@@ -270,7 +270,7 @@ The screen that answers every question at a glance: a grid of people across time
   | Kevin  | Stand | [== Construction ==]  | ... | Evening mtg    |
   |        |  -up  |  (High, Izumi)        |     |                |
   |--------|-------|-----------------------|-----|----------------|
-  | Martin | Stand | [= Docs =] (Med, HQ)  | ... | Evening mtg    |
+  | Martin | Stand | [= Docs =] (Med, Main)| ... | Evening mtg    |
   |--------|-------|-----------------------|-----|----------------|
   | Ambrose| Stand | [==== Ogasawara ====] | ... | Evening mtg    |
   +---------------------------------------------------------------+
@@ -343,8 +343,8 @@ A custom Next.js application talks directly to Google Sheets. There is no separa
           |
           v
    +-----------------------+        +------------------------+
-   |   Next.js App          | <----> |   Google Sheets API    |
-   |   - 3 pages            |  read  |   - People             |
+   |   Next.js App         | <----> |   Google Sheets API    |
+   |   - 3 pages           |  read  |   - People             |
    |   - PIN sign-in       |  write |   - Tasks              |
    |   - defaults & hints  |        |   - Entries            |
    +-----------------------+        +------------------------+
@@ -399,7 +399,7 @@ Today meetings are typed in by hand. A later version can connect to Microsoft Ou
 When a plan changes (for example an urgent meeting appears), the system could shift the affected blocks and propose a new plan, similar to apps like Motion. It could also suggest an order when tasks compete for the same time.
 
 - **Adds:** the schedule repairs itself instead of being fixed by hand.
-- **Why it waits:** this only helps once tasks are well organized and priorities are reliable. As the meeting stressed, intelligence on top of disorganized data makes things worse, not better.
+- **Why it waits:** it works best once tasks are well organized and priorities are settled. As the meeting noted, intelligence helps most when the underlying information is already in good shape.
 - **Why it stays feasible:** the data captured now (task, priority, time, place) is exactly the input such a feature needs.
 
 ### 12.3 Carry-over of unfinished tasks
@@ -450,7 +450,7 @@ The PIN is a lightweight sign-in, good for an internal team, but it is identity,
   Week of 8th   Watch real use, fix friction, then start the deferred items
 ```
 
-A new system only works if people actually use it. So go-live includes a short, clear explanation of why the first version does only what it does. That protects the team from confusion and protects the system from being abandoned.
+A new system works best when it is easy to adopt. So go-live includes a short, friendly walkthrough of what the first version does and why. That keeps everyone clear on what to expect and helps the new routine take hold.
 
 ---
 
@@ -458,11 +458,11 @@ A new system only works if people actually use it. So go-live includes a short, 
 
 | Risk                                         | How we handle it                                                  |
 | :------------------------------------------- | :---------------------------------------------------------------- |
-| People find it more work than the old way    | Keep daily input near 30 seconds with defaults and suggestions.   |
+| People find it more work than the current way | Keep daily input near 30 seconds with defaults and suggestions.  |
 | The system is built but not adopted          | Explain it clearly at launch and keep it genuinely simple.        |
-| Tasks are still disorganized underneath      | Management organizes the task list first, before anything else.   |
+| Tasks are not yet organized underneath       | Management organizes the task list first, before anything else.   |
 | Google Sheets limits (speed, many editors)   | Fine for one team now. Move to a real database later if needed.   |
-| Trying to add intelligence too early         | Organize manually first. AI only helps once things are in order.  |
+| Trying to add intelligence too early         | Organize manually first. AI helps most once the basics are ready. |
 
 ---
 
