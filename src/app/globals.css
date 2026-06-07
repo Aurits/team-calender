@@ -1,72 +1,66 @@
 @import "tailwindcss";
 
 /*
-  Cadence — design tokens
-  Direction: warm "paper" canvas + ink + a single confident teal accent.
+  Cadence — "Clay & Cobalt"
+  Warm clay-paper canvas + near-black ink + one vivid cobalt accent.
   Flat only: no gradients. Color carries meaning, never decoration.
 */
 @theme {
-  /* surfaces */
-  --color-canvas: #f4f3ef;
+  --color-canvas: #efece3;
   --color-surface: #ffffff;
-  --color-surface-2: #faf9f6;
+  --color-surface-2: #f5f2ea;
 
-  /* ink + lines */
-  --color-ink: #1a1a17;
-  --color-ink-2: #4a4943;
-  --color-muted: #8a887f;
-  --color-hairline: #e7e5de;
-  --color-hairline-strong: #d9d7ce;
+  --color-ink: #1b1a16;
+  --color-ink-2: #57534a;
+  --color-muted: #938e81;
+  --color-hairline: #e3dfd4;
+  --color-hairline-2: #d2ccbd;
 
-  /* accent */
-  --color-accent: #0f766e;
-  --color-accent-hover: #0b5f58;
-  --color-accent-soft: #e3efec;
-  --color-accent-ink: #ffffff;
+  --color-accent: #3a45d9;
+  --color-accent-hover: #2a33b8;
+  --color-accent-soft: #e7e8fa;
 
-  /* priority — high */
-  --color-high: #e5484d;
-  --color-high-ink: #b43a3f;
-  --color-high-soft: #fbeaea;
-  --color-high-line: #f1cccd;
+  --color-high: #e0463c;
+  --color-high-ink: #b23227;
+  --color-high-soft: #f8e4e0;
+  --color-high-line: #eecabf;
 
-  /* priority — medium */
-  --color-med: #e08700;
-  --color-med-ink: #966309;
-  --color-med-soft: #fbf1df;
-  --color-med-line: #efddb6;
+  --color-med: #d9870a;
+  --color-med-ink: #8f5a05;
+  --color-med-soft: #f6ecd6;
+  --color-med-line: #e7d2a8;
 
-  /* priority — low */
-  --color-low: #a8a69c;
-  --color-low-ink: #6e6c64;
-  --color-low-soft: #efeee9;
-  --color-low-line: #e0ded5;
+  --color-low: #9a9486;
+  --color-low-ink: #6a6557;
+  --color-low-soft: #ece8dc;
+  --color-low-line: #d8d2c3;
 
-  /* avatar tints (functional, muted) */
-  --color-av1-bg: #e3efec;
-  --color-av1-ink: #0f766e;
-  --color-av2-bg: #f1e7e4;
-  --color-av2-ink: #9c5b4b;
-  --color-av3-bg: #e8e6f2;
-  --color-av3-ink: #5b4f81;
-  --color-av4-bg: #e2eaf1;
-  --color-av4-ink: #3e6491;
-  --color-av5-bg: #f3ebda;
-  --color-av5-ink: #8a6a1f;
+  --color-av1-bg: #e7e8fa;
+  --color-av1-ink: #3a45d9;
+  --color-av2-bg: #f3e3df;
+  --color-av2-ink: #b25a48;
+  --color-av3-bg: #e4ecdf;
+  --color-av3-ink: #4f7a4e;
+  --color-av4-bg: #f5e8d4;
+  --color-av4-ink: #99710f;
+  --color-av5-bg: #e7e4f0;
+  --color-av5-ink: #6b5b9a;
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
 }
 
 html {
   height: 100%;
 }
-
 body {
+  min-height: 100%;
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.006em;
 }
 
 ::selection {
@@ -74,13 +68,110 @@ body {
   color: var(--color-accent-hover);
 }
 
-/* tabular numbers for any time / numeric column */
+/* ------------------------------- type ---------------------------------- */
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.02em;
+}
 .tnum {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
+.overline {
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
 
-/* consistent, visible focus */
+/* ----------------------------- components ------------------------------ */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(27, 26, 22, 0.04);
+}
+
+.field {
+  width: 100%;
+  border: 1px solid var(--color-hairline-2);
+  background: var(--color-surface);
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  font-size: 14px;
+  color: var(--color-ink);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 10px;
+  padding: 0.55rem 0.95rem;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--color-accent);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+.btn-soft {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
+}
+.btn-soft:hover:not(:disabled) {
+  background: #dcdef7;
+}
+.btn-outline {
+  background: var(--color-surface);
+  border-color: var(--color-hairline-2);
+  color: var(--color-ink);
+}
+.btn-outline:hover:not(:disabled) {
+  background: var(--color-surface-2);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--color-ink-2);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-surface-2);
+}
+
+.navlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink-2);
+  transition: color 0.15s;
+}
+.navlink:hover {
+  color: var(--color-accent-hover);
+}
+
+/* visible focus everywhere */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -88,18 +179,18 @@ select:focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
-/* thin, quiet scrollbars */
+/* quiet scrollbars */
 .scroll-quiet::-webkit-scrollbar {
   height: 10px;
   width: 10px;
 }
 .scroll-quiet::-webkit-scrollbar-thumb {
-  background: var(--color-hairline-strong);
+  background: var(--color-hairline-2);
   border-radius: 999px;
-  border: 3px solid var(--color-canvas);
+  border: 3px solid var(--color-surface);
 }
 .scroll-quiet::-webkit-scrollbar-track {
   background: transparent;
