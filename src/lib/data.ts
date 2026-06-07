@@ -57,6 +57,13 @@ export const fmtDuration = (mins: number) => {
   return `${m}m`;
 };
 
+export const fmtTime12 = (hhmm: string) => {
+  const [h, m] = hhmm.split(":").map(Number);
+  const ap = h < 12 ? "AM" : "PM";
+  const hr = h % 12 || 12;
+  return `${hr}:${String(m).padStart(2, "0")} ${ap}`;
+};
+
 /** The visible day window on the calendar. */
 export const DAY_START = 8 * 60; // 08:00
 export const DAY_END = 18.5 * 60; // 18:30

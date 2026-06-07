@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode, SVGProps } from "react";
 import type { Priority } from "@/lib/types";
 import { initialsOf, priorityMeta, tintClass } from "@/lib/data";
@@ -94,6 +95,84 @@ export function PriorityTag({ priority }: { priority: Priority }) {
   );
 }
 
+/* ------------------------------- Select -------------------------------- */
+
+export interface Option {
+  value: string;
+  label: ReactNode;
+}
+
+export function Select({
+  value,
+  onChange,
+  options,
+  placeholder,
+  icon,
+  align = "left",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: Option[];
+  placeholder?: string;
+  icon?: ReactNode;
+  align?: "left" | "right";
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const current = options.find((o) => o.value === value);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between gap-2 rounded-lg border border-hairline-2 bg-surface px-3 py-2 text-sm transition-colors hover:border-ink-2/40"
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          {icon && <span className="shrink-0">{icon}</span>}
+          <span className={`truncate ${current ? "text-ink" : "text-muted"}`}>
+            {current ? current.label : placeholder}
+          </span>
+        </span>
+        <Chevron width={15} height={15} className={`shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div
+          className={`absolute z-30 mt-1.5 max-h-60 min-w-full overflow-auto rounded-xl border border-hairline bg-surface p-1 shadow-[0_12px_32px_rgba(27,27,31,0.14)] ${
+            align === "right" ? "right-0" : "left-0"
+          }`}
+        >
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => {
+                onChange(o.value);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                o.value === value ? "bg-accent-soft text-accent-hover" : "text-ink hover:bg-surface-2"
+              }`}
+            >
+              <span className="truncate">{o.label}</span>
+              {o.value === value && <Check width={15} height={15} className="shrink-0" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ------------------------------- Brand --------------------------------- */
 
 /** The Cadence mark: a beat dot with two pulses radiating out (rhythm over time). */
@@ -137,6 +216,8 @@ export function PageFrame({
   overline,
   title,
   subtitle,
+  lead,
+  date,
   person,
   onSignOut,
   actions,
@@ -145,8 +226,10 @@ export function PageFrame({
 }: {
   here: "today" | "calendar" | "manage";
   overline?: string;
-  title: ReactNode;
+  title?: ReactNode;
   subtitle?: string;
+  lead?: ReactNode;
+  date?: string;
   person?: { name: string; tint: number };
   onSignOut?: () => void;
   actions?: ReactNode;
@@ -159,33 +242,38 @@ export function PageFrame({
       <header className="border-b border-hairline bg-canvas/80 backdrop-blur">
         <div className={`mx-auto flex h-14 w-full items-center justify-between px-5 sm:px-8 ${width}`}>
           <Brand />
-          {person && (
-            <div className="flex items-center gap-3">
-              <span className="hidden items-center gap-2 sm:flex">
-                <Avatar name={person.name} tint={person.tint} size="sm" />
-                <span className="text-sm font-medium text-ink">{person.name}</span>
-              </span>
-              {onSignOut && (
-                <button onClick={onSignOut} className="navlink text-muted hover:text-ink">
-                  Sign out
-                </button>
-              )}
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {date && <span className="hidden text-sm font-medium text-ink-2 sm:inline">{date}</span>}
+            {date && person && <span className="hidden h-4 w-px bg-hairline sm:inline-block" />}
+            {person && <Avatar name={person.name} tint={person.tint} size="sm" />}
+            {person && <span className="hidden text-sm font-medium text-ink sm:inline">{person.name}</span>}
+            {onSignOut && (
+              <button onClick={onSignOut} className="navlink text-muted hover:text-ink">
+                Sign out
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
       <main className={`mx-auto w-full px-5 pb-16 pt-8 sm:px-8 sm:pt-10 ${width}`}>
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            {overline && <div className="overline mb-2">{overline}</div>}
-            <h1 className="font-display text-[28px] leading-none text-ink sm:text-[34px]">{title}</h1>
-            {subtitle && <p className="mt-2.5 max-w-xl text-sm text-muted">{subtitle}</p>}
+        {lead ? (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">{lead}</div>
+            {actions && <div className="flex items-center gap-2">{actions}</div>}
           </div>
-          {actions && <div className="flex items-center gap-2">{actions}</div>}
-        </div>
+        ) : title ? (
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              {overline && <div className="overline mb-2">{overline}</div>}
+              <h1 className="font-display text-[28px] leading-none text-ink sm:text-[34px]">{title}</h1>
+              {subtitle && <p className="mt-2.5 max-w-xl text-sm text-muted">{subtitle}</p>}
+            </div>
+            {actions && <div className="flex items-center gap-2">{actions}</div>}
+          </div>
+        ) : null}
 
-        <div className="mt-7">{children}</div>
+        <div className={lead || title ? "mt-7" : ""}>{children}</div>
 
         <footer className="mt-14 flex flex-wrap items-center gap-x-7 gap-y-3 border-t border-hairline pt-6">
           <span className="overline">Go to</span>

@@ -2,16 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Brand, Check, Pencil, PageFrame, Plus, PriorityTag, X } from "@/components/ui";
+import { ArrowRight, Brand, Check, Clock, PageFrame, Pencil, Plus, PriorityTag, Select, X } from "@/components/ui";
 import { loadDay, saveDay, useSession } from "@/lib/session";
 import {
   demoDate,
   durationChoices,
   fmtDuration,
   fmtLongDate,
+  fmtTime12,
   getPerson,
   placeChoices,
+  priorityMeta,
   taskOptions,
+  toHHMM,
   toMin,
 } from "@/lib/data";
 import type { Entry, Priority } from "@/lib/types";
@@ -140,6 +143,27 @@ const toEntries = (personId: string, rows: Row[]): Entry[] =>
       priority: r.priority,
     }));
 
+const taskOpts = taskOptions.map((o) => ({ value: o.id, label: o.label }));
+const placeOpts = placeChoices.map((p) => ({ value: p, label: p }));
+const prioOpts = (["high", "medium", "low"] as const).map((p) => ({
+  value: p,
+  label: (
+    <span className="flex items-center gap-2">
+      <span className={`h-1.5 w-1.5 rounded-full ${priorityMeta[p].dot}`} />
+      {priorityMeta[p].label}
+    </span>
+  ),
+}));
+const durOpts = durationChoices.map((d) => ({ value: String(d), label: fmtDuration(d) }));
+const timeOpts = (() => {
+  const out: { value: string; label: string }[] = [];
+  for (let m = 8 * 60; m <= 18 * 60; m += 15) {
+    const hhmm = toHHMM(m);
+    out.push({ value: hhmm, label: fmtTime12(hhmm) });
+  }
+  return out;
+})();
+
 function Today({ personId, onSignOut }: { personId: string; onSignOut: () => void }) {
   const person = getPerson(personId)!;
   const [ready, setReady] = useState(false);
@@ -179,15 +203,18 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
     setMode("view");
   };
 
-  const frame = (children: React.ReactNode, subtitle: string, actions?: React.ReactNode) => (
+  const frame = (children: React.ReactNode, sub: string) => (
     <PageFrame
       here="today"
-      overline={fmtLongDate(demoDate)}
-      title={`Hi, ${person.name}`}
-      subtitle={subtitle}
+      date={fmtLongDate(demoDate)}
+      lead={
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <span className="font-display text-2xl text-ink sm:text-[26px]">Hi, {person.name}</span>
+          <span className="text-sm text-muted">· {sub}</span>
+        </div>
+      }
       person={{ name: person.name, tint: person.tint }}
       onSignOut={onSignOut}
-      actions={actions}
     >
       {children}
     </PageFrame>
@@ -241,67 +268,59 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
           </Link>
         </div>
       </div>,
-      "Here is your plan for today. You can edit it any time.",
+      "Here's your plan for today.",
     );
   }
 
   /* ---- edit: create / change the plan ---- */
   return frame(
     <div className="flex flex-col gap-4">
-      <div className="hidden px-1 lg:grid lg:grid-cols-[1.5fr_1.4fr_104px_120px_150px_132px_40px] lg:gap-3">
-        {["Task", "Detail (optional)", "Start", "Duration", "Place", "Priority", ""].map((h, i) => (
-          <div key={i} className="overline">{h}</div>
-        ))}
-      </div>
+      <div className="card divide-y divide-hairline">
+        <div className="hidden grid-cols-[1.5fr_1.4fr_140px_120px_132px_128px_40px] gap-3 px-4 pb-2 pt-3 lg:grid">
+          {["Task", "Detail", "Start", "Duration", "Place", "Priority", ""].map((h, i) => (
+            <div key={i} className="overline">{h}</div>
+          ))}
+        </div>
 
-      {rows.map((r) => (
-        <div key={r.id} className="card p-3">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-[1.5fr_1.4fr_104px_120px_150px_132px_40px] lg:items-center">
-            <Field label="Task" wide>
-              <select
-                value={r.taskId}
-                onChange={(e) => selectTask(r.id, e.target.value)}
-                className={`field ${!r.taskId ? "text-muted" : ""}`}
-              >
-                <option value="">Select a task…</option>
-                {taskOptions.map((o) => (
-                  <option key={o.id} value={o.id}>{o.label}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Detail (optional)" wide>
+        {rows.map((r) => (
+          <div
+            key={r.id}
+            className="grid grid-cols-2 gap-x-3 gap-y-3 px-4 py-3.5 lg:grid-cols-[1.5fr_1.4fr_140px_120px_132px_128px_40px] lg:items-center lg:gap-3"
+          >
+            <div className="col-span-2 lg:col-span-1">
+              <span className="overline mb-1 block lg:hidden">Task</span>
+              <Select value={r.taskId} onChange={(v) => selectTask(r.id, v)} placeholder="Select a task…" options={taskOpts} />
+            </div>
+            <div className="col-span-2 lg:col-span-1">
+              <span className="overline mb-1 block lg:hidden">Detail</span>
               <input
+                className="field-line"
+                placeholder="What exactly…"
                 value={r.note}
                 onChange={(e) => update(r.id, { note: e.target.value })}
-                placeholder="What exactly…"
-                className="field"
               />
-            </Field>
-            <Field label="Start">
-              <input type="time" value={r.start} onChange={(e) => update(r.id, { start: e.target.value })} className="field tnum" />
-            </Field>
-            <Field label="Duration">
-              <select value={r.durationMins} onChange={(e) => update(r.id, { durationMins: Number(e.target.value) })} className="field">
-                {durationChoices.map((d) => (
-                  <option key={d} value={d}>{fmtDuration(d)}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Place">
-              <select value={r.place} onChange={(e) => update(r.id, { place: e.target.value })} className={`field ${!r.place ? "text-muted" : ""}`}>
-                <option value="">Place…</option>
-                {placeChoices.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Priority">
-              <select value={r.priority} onChange={(e) => update(r.id, { priority: e.target.value as Priority })} className="field">
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-            </Field>
+            </div>
+            <div>
+              <span className="overline mb-1 block lg:hidden">Start</span>
+              <Select
+                value={r.start}
+                onChange={(v) => update(r.id, { start: v })}
+                options={timeOpts}
+                icon={<Clock width={15} height={15} className="text-muted" />}
+              />
+            </div>
+            <div>
+              <span className="overline mb-1 block lg:hidden">Duration</span>
+              <Select value={String(r.durationMins)} onChange={(v) => update(r.id, { durationMins: Number(v) })} options={durOpts} />
+            </div>
+            <div>
+              <span className="overline mb-1 block lg:hidden">Place</span>
+              <Select value={r.place} onChange={(v) => update(r.id, { place: v })} placeholder="Place…" options={placeOpts} align="right" />
+            </div>
+            <div>
+              <span className="overline mb-1 block lg:hidden">Priority</span>
+              <Select value={r.priority} onChange={(v) => update(r.id, { priority: v as Priority })} options={prioOpts} align="right" />
+            </div>
             <div className="col-span-2 flex justify-end lg:col-span-1 lg:justify-center">
               <button
                 onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((x) => x.id !== r.id) : rs))}
@@ -309,12 +328,12 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-high-soft hover:text-high-ink disabled:opacity-30 disabled:hover:bg-transparent"
                 aria-label="Remove block"
               >
-                <X />
+                <X width={16} height={16} />
               </button>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       <div>
         <button onClick={() => setRows((rs) => [...rs, blank()])} className="btn btn-ghost">
@@ -348,15 +367,6 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
         </div>
       </div>
     </div>,
-    "Add your blocks for the day. A few taps, mostly defaults.",
-  );
-}
-
-function Field({ label, wide, children }: { label: string; wide?: boolean; children: React.ReactNode }) {
-  return (
-    <label className={`flex flex-col gap-1 ${wide ? "col-span-2 lg:col-span-1" : ""}`}>
-      <span className="text-[11px] font-medium text-muted lg:hidden">{label}</span>
-      {children}
-    </label>
+    "Add your blocks for the day.",
   );
 }
