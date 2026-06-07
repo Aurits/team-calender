@@ -10,7 +10,6 @@ import {
   fmtDuration,
   fmtLongDate,
   getPerson,
-  people,
   placeChoices,
   taskOptions,
   toMin,
@@ -33,24 +32,12 @@ export default function Home() {
 
 function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
   const [pin, setPin] = useState("");
-  const [error, setError] = useState(false);
 
-  const submit = (value: string) => {
-    const match = people.find((p) => p.pin === value);
-    if (match) onSignIn(match.id);
-    else {
-      setError(true);
-      setTimeout(() => {
-        setError(false);
-        setPin("");
-      }, 550);
-    }
-  };
   const press = (d: string) => {
     if (pin.length >= 4) return;
     const next = pin + d;
     setPin(next);
-    if (next.length === 4) submit(next);
+    if (next.length === 4) onSignIn("demo");
   };
 
   return (
@@ -62,19 +49,17 @@ function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
       <div className="card w-full max-w-sm p-6 sm:p-7">
         <h1 className="font-display text-2xl text-ink">Plan your day</h1>
         <p className="mt-1.5 text-sm text-muted">
-          Enter your 4-digit PIN. It is remembered on this device.
+          Enter a 4-digit PIN. It is remembered on this device.
         </p>
 
-        <div className={`mt-5 flex gap-3 ${error ? "animate-pulse" : ""}`}>
+        <div className="mt-5 flex gap-3">
           {[0, 1, 2, 3].map((i) => (
             <span
               key={i}
               className={`flex h-12 flex-1 items-center justify-center rounded-xl border text-xl font-semibold sm:h-14 ${
-                error
-                  ? "border-high-line bg-high-soft text-high-ink"
-                  : pin[i]
-                    ? "border-accent bg-accent-soft text-accent-hover"
-                    : "border-hairline-2 bg-surface text-muted"
+                pin[i]
+                  ? "border-accent bg-accent-soft text-accent-hover"
+                  : "border-hairline-2 bg-surface text-muted"
               }`}
             >
               {pin[i] ? "•" : ""}
@@ -90,15 +75,6 @@ function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
           <Key onClick={() => press("0")}>0</Key>
           <Key onClick={() => setPin((p) => p.slice(0, -1))} muted>⌫</Key>
         </div>
-
-        <div className="mt-5 flex items-center gap-3">
-          <span className="h-px flex-1 bg-hairline" />
-          <span className="text-xs text-muted">or</span>
-          <span className="h-px flex-1 bg-hairline" />
-        </div>
-        <button onClick={() => onSignIn("demo")} className="btn btn-soft mt-4 w-full">
-          Enter as Demo
-        </button>
       </div>
     </div>
   );
