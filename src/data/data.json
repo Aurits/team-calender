@@ -5,7 +5,8 @@
     { "id": "p2", "pin": "2470", "name": "Martin", "role": "Engineer", "defaultPlace": "Main Office", "tint": 2 },
     { "id": "p3", "pin": "1009", "name": "Ambrose", "role": "Developer", "defaultPlace": "Izumi", "tint": 3 },
     { "id": "p4", "pin": "3388", "name": "Andra", "role": "Designer", "defaultPlace": "Main Office", "tint": 4 },
-    { "id": "p5", "pin": "7777", "name": "Inaba", "role": "Manager", "defaultPlace": "Sugimoto", "tint": 5 }
+    { "id": "p5", "pin": "7777", "name": "Inaba", "role": "Manager", "defaultPlace": "Sugimoto", "tint": 5 },
+    { "id": "demo", "pin": "0000", "name": "Demo", "role": "Guest", "defaultPlace": "Main Office", "tint": 1 }
   ],
   "tasks": [
     { "id": "t1", "level": 1, "parentId": null, "title": "Ogasawara Project", "description": "Field preparation and on-site work for the Ogasawara initiative.", "priority": "high", "deadline": "2026-06-30", "defaultPlace": "Izumi" },

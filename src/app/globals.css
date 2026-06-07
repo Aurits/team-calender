@@ -1,54 +1,54 @@
 @import "tailwindcss";
 
 /*
-  Cadence — "Clay & Cobalt"
-  Warm clay-paper canvas + near-black ink + one vivid cobalt accent.
+  Cadence — "Porcelain & Cobalt"
+  Soft off-white canvas + near-black ink + one vivid cobalt accent.
   Flat only: no gradients. Color carries meaning, never decoration.
 */
 @theme {
-  --color-canvas: #efece3;
+  --color-canvas: #f7f6f3;
   --color-surface: #ffffff;
-  --color-surface-2: #f5f2ea;
+  --color-surface-2: #efeee9;
 
-  --color-ink: #1b1a16;
-  --color-ink-2: #57534a;
-  --color-muted: #938e81;
-  --color-hairline: #e3dfd4;
-  --color-hairline-2: #d2ccbd;
+  --color-ink: #1b1b1f;
+  --color-ink-2: #4c4c52;
+  --color-muted: #8a8a91;
+  --color-hairline: #e8e7e2;
+  --color-hairline-2: #d7d6d0;
 
-  --color-accent: #3a45d9;
-  --color-accent-hover: #2a33b8;
-  --color-accent-soft: #e7e8fa;
+  --color-accent: #3d43d6;
+  --color-accent-hover: #2e33b5;
+  --color-accent-soft: #e9e9fb;
 
-  --color-high: #e0463c;
-  --color-high-ink: #b23227;
-  --color-high-soft: #f8e4e0;
-  --color-high-line: #eecabf;
+  --color-high: #df453b;
+  --color-high-ink: #bc3526;
+  --color-high-soft: #fbe7e3;
+  --color-high-line: #f1cdc5;
 
   --color-med: #d9870a;
-  --color-med-ink: #8f5a05;
-  --color-med-soft: #f6ecd6;
-  --color-med-line: #e7d2a8;
+  --color-med-ink: #8e5b07;
+  --color-med-soft: #f7eed9;
+  --color-med-line: #ecd6ac;
 
-  --color-low: #9a9486;
-  --color-low-ink: #6a6557;
-  --color-low-soft: #ece8dc;
-  --color-low-line: #d8d2c3;
+  --color-low: #9a9890;
+  --color-low-ink: #6a685f;
+  --color-low-soft: #eeece6;
+  --color-low-line: #dbdad2;
 
-  --color-av1-bg: #e7e8fa;
-  --color-av1-ink: #3a45d9;
-  --color-av2-bg: #f3e3df;
-  --color-av2-ink: #b25a48;
-  --color-av3-bg: #e4ecdf;
-  --color-av3-ink: #4f7a4e;
-  --color-av4-bg: #f5e8d4;
-  --color-av4-ink: #99710f;
-  --color-av5-bg: #e7e4f0;
-  --color-av5-ink: #6b5b9a;
+  --color-av1-bg: #e9e9fb;
+  --color-av1-ink: #3d43d6;
+  --color-av2-bg: #f6e6e1;
+  --color-av2-ink: #b2584a;
+  --color-av3-bg: #e6efe2;
+  --color-av3-ink: #4e7a50;
+  --color-av4-bg: #f6ecd8;
+  --color-av4-ink: #95700f;
+  --color-av5-bg: #ece8f3;
+  --color-av5-ink: #6a5b97;
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-fraunces);
+  --font-display: var(--font-bricolage);
 }
 
 html {
@@ -70,8 +70,8 @@ body {
 
 /* ------------------------------- type ---------------------------------- */
 .font-display {
-  font-family: var(--font-display), Georgia, serif;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display), "Geist", system-ui, sans-serif;
+  letter-spacing: -0.018em;
 }
 .tnum {
   font-variant-numeric: tabular-nums;

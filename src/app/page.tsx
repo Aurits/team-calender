@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Avatar, ArrowRight, Brand, Check, Pencil, PageFrame, Plus, PriorityTag, X } from "@/components/ui";
+import { ArrowRight, Brand, Check, Pencil, PageFrame, Plus, PriorityTag, X } from "@/components/ui";
 import { loadDay, saveDay, useSession } from "@/lib/session";
 import {
   demoDate,
@@ -54,22 +54,22 @@ function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-5 py-10">
-      <div className="mb-8">
+    <div className="flex h-dvh flex-col items-center justify-center overflow-hidden px-5 py-4">
+      <div className="mb-5 sm:mb-7">
         <Brand />
       </div>
 
-      <div className="card w-full max-w-sm p-7">
+      <div className="card w-full max-w-sm p-6 sm:p-7">
         <h1 className="font-display text-2xl text-ink">Plan your day</h1>
         <p className="mt-1.5 text-sm text-muted">
           Enter your 4-digit PIN. It is remembered on this device.
         </p>
 
-        <div className={`mt-6 flex gap-3 ${error ? "animate-pulse" : ""}`}>
+        <div className={`mt-5 flex gap-3 ${error ? "animate-pulse" : ""}`}>
           {[0, 1, 2, 3].map((i) => (
             <span
               key={i}
-              className={`flex h-14 flex-1 items-center justify-center rounded-xl border text-xl font-semibold ${
+              className={`flex h-12 flex-1 items-center justify-center rounded-xl border text-xl font-semibold sm:h-14 ${
                 error
                   ? "border-high-line bg-high-soft text-high-ink"
                   : pin[i]
@@ -82,7 +82,7 @@ function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
           ))}
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-2.5">
+        <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-2.5">
           {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
             <Key key={d} onClick={() => press(d)}>{d}</Key>
           ))}
@@ -90,23 +90,15 @@ function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
           <Key onClick={() => press("0")}>0</Key>
           <Key onClick={() => setPin((p) => p.slice(0, -1))} muted>⌫</Key>
         </div>
-      </div>
 
-      <div className="mt-5 w-full max-w-sm rounded-2xl border border-hairline bg-surface-2 px-4 py-3">
-        <div className="overline">Demo PINs</div>
-        <div className="mt-2.5 flex flex-wrap gap-2">
-          {people.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => onSignIn(p.id)}
-              className="flex items-center gap-2 rounded-full border border-hairline bg-surface px-2.5 py-1 text-xs hover:bg-canvas"
-            >
-              <Avatar name={p.name} tint={p.tint} size="sm" />
-              <span className="font-medium text-ink">{p.name}</span>
-              <span className="tnum text-muted">{p.pin}</span>
-            </button>
-          ))}
+        <div className="mt-5 flex items-center gap-3">
+          <span className="h-px flex-1 bg-hairline" />
+          <span className="text-xs text-muted">or</span>
+          <span className="h-px flex-1 bg-hairline" />
         </div>
+        <button onClick={() => onSignIn("demo")} className="btn btn-soft mt-4 w-full">
+          Enter as Demo
+        </button>
       </div>
     </div>
   );
@@ -116,7 +108,7 @@ function Key({ children, onClick, muted }: { children: React.ReactNode; onClick:
   return (
     <button
       onClick={onClick}
-      className={`flex h-14 items-center justify-center rounded-xl border border-hairline-2 text-lg font-medium transition-colors hover:bg-surface-2 active:bg-accent-soft ${
+      className={`flex h-12 items-center justify-center rounded-xl border border-hairline-2 text-lg font-medium transition-colors hover:bg-surface-2 active:bg-accent-soft sm:h-14 ${
         muted ? "text-sm text-muted" : "text-ink"
       }`}
     >
