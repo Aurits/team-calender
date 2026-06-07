@@ -83,6 +83,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.09em;
   text-transform: uppercase;
+  text-decoration: none;
   color: var(--color-muted);
 }
 

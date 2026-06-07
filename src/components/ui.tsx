@@ -206,8 +206,8 @@ export function Brand() {
 /* ----------------------------- PageFrame ------------------------------- */
 
 const NAV = [
-  { key: "today", href: "/", label: "Your day" },
-  { key: "calendar", href: "/calendar", label: "Team calendar" },
+  { key: "today", href: "/", label: "Today" },
+  { key: "calendar", href: "/calendar", label: "Calendar" },
   { key: "manage", href: "/manage", label: "Tasks" },
 ];
 
@@ -237,16 +237,35 @@ export function PageFrame({
   children: ReactNode;
 }) {
   const width = wide ? "max-w-[1460px]" : "max-w-[1180px]";
+  const navEl = (
+    <nav className="flex items-center gap-4 sm:gap-5">
+      {NAV.filter((n) => n.key !== here).map((n) => (
+        <Link key={n.key} href={n.href} className="navlink">
+          {n.label}
+        </Link>
+      ))}
+    </nav>
+  );
+  const right = (
+    <div className="flex items-center gap-4 sm:gap-6">
+      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {navEl}
+    </div>
+  );
   return (
     <div className="min-h-dvh">
       <header className="border-b border-hairline bg-canvas/80 backdrop-blur">
         <div className={`mx-auto flex h-14 w-full items-center justify-between px-5 sm:px-8 ${width}`}>
           <Brand />
-          <div className="flex items-center gap-3">
-            {date && <span className="hidden text-sm font-medium text-ink-2 sm:inline">{date}</span>}
+          <div className="flex items-center gap-3 sm:gap-4">
+            {date && <span className="hidden text-sm font-medium text-ink-2 md:inline">{date}</span>}
             {date && person && <span className="hidden h-4 w-px bg-hairline sm:inline-block" />}
-            {person && <Avatar name={person.name} tint={person.tint} size="sm" />}
-            {person && <span className="hidden text-sm font-medium text-ink sm:inline">{person.name}</span>}
+            {person && (
+              <span className="hidden sm:inline-flex">
+                <Avatar name={person.name} tint={person.tint} size="sm" />
+              </span>
+            )}
+            {person && <span className="hidden text-sm font-medium text-ink lg:inline">{person.name}</span>}
             {onSignOut && (
               <button onClick={onSignOut} className="navlink text-muted hover:text-ink">
                 Sign out
@@ -258,32 +277,24 @@ export function PageFrame({
 
       <main className={`mx-auto w-full px-5 pb-16 pt-8 sm:px-8 sm:pt-10 ${width}`}>
         {lead ? (
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
             <div className="min-w-0">{lead}</div>
-            {actions && <div className="flex items-center gap-2">{actions}</div>}
+            {right}
           </div>
         ) : title ? (
-          <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
             <div>
               {overline && <div className="overline mb-2">{overline}</div>}
               <h1 className="font-display text-[28px] leading-none text-ink sm:text-[34px]">{title}</h1>
               {subtitle && <p className="mt-2.5 max-w-xl text-sm text-muted">{subtitle}</p>}
             </div>
-            {actions && <div className="flex items-center gap-2">{actions}</div>}
+            {right}
           </div>
-        ) : null}
+        ) : (
+          <div className="flex justify-end">{navEl}</div>
+        )}
 
-        <div className={lead || title ? "mt-7" : ""}>{children}</div>
-
-        <footer className="mt-14 flex flex-wrap items-center gap-x-7 gap-y-3 border-t border-hairline pt-6">
-          <span className="overline">Go to</span>
-          {NAV.filter((n) => n.key !== here).map((n) => (
-            <Link key={n.key} href={n.href} className="navlink">
-              {n.label}
-              <ArrowUpRight width={15} height={15} />
-            </Link>
-          ))}
-        </footer>
+        <div className="mt-7">{children}</div>
       </main>
     </div>
   );
