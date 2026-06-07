@@ -96,15 +96,30 @@ export function PriorityTag({ priority }: { priority: Priority }) {
 
 /* ------------------------------- Brand --------------------------------- */
 
+/** The Cadence mark: a beat dot with two pulses radiating out (rhythm over time). */
+export function Mark({ size = 30 }: { size?: number }) {
+  return (
+    <span
+      className="flex items-center justify-center rounded-[10px] bg-accent"
+      style={{ width: size, height: size }}
+    >
+      <svg width={size * 0.66} height={size * 0.66} viewBox="0 0 32 32" fill="none" aria-hidden>
+        <circle cx="11" cy="16" r="2.7" fill="#fff" />
+        <path d="M15.5 10a6.6 6.6 0 0 1 0 12" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" />
+        <path d="M19.5 6.5a10.4 10.4 0 0 1 0 19" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" opacity="0.6" />
+      </svg>
+    </span>
+  );
+}
+
 export function Brand() {
   return (
-    <Link href="/" className="flex items-center gap-2.5">
-      <span className="flex h-7 w-7 items-center justify-center rounded-[9px] bg-accent text-white">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <path d="M5 14v-4M10 18V6M14 16V8M19 13v-2" />
-        </svg>
+    <Link href="/" className="group flex items-center gap-2.5" aria-label="Cadence home">
+      <Mark size={30} />
+      <span className="font-display text-[20px] font-medium leading-none text-ink">
+        Cadence
+        <span className="text-accent">.</span>
       </span>
-      <span className="font-display text-lg font-medium text-ink">Cadence</span>
     </Link>
   );
 }

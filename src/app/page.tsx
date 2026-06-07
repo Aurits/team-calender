@@ -380,7 +380,7 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
         </div>
       </div>
     </div>,
-    "Add your blocks for the day — a few taps, mostly defaults.",
+    "Add your blocks for the day. A few taps, mostly defaults.",
   );
 }
 

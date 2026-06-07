@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="232" height="48" viewBox="0 0 232 48" role="img" aria-label="Cadence">
+  <!-- mark: beat dot + two pulses -->
+  <rect x="0" y="8" width="32" height="32" rx="8" fill="#3a45d9"/>
+  <circle cx="11" cy="24" r="2.7" fill="#ffffff"/>
+  <path d="M15.5 18a6.6 6.6 0 0 1 0 12" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M19.5 14.5a10.4 10.4 0 0 1 0 19" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.6"/>
+  <!-- wordmark -->
+  <text x="46" y="33" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="27" font-weight="500" letter-spacing="-0.6" fill="#1b1a16">Cadence<tspan fill="#3a45d9">.</tspan></text>
+</svg>

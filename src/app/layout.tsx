@@ -11,7 +11,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Cadence — Team Schedule",
+  title: "Cadence · Team Schedule",
   description: "One shared place that shows who is doing what, where, when, and how important.",
 };
 

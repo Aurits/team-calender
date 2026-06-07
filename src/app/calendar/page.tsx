@@ -11,6 +11,7 @@ import {
   demoDate,
   endOf,
   entries as seed,
+  fmtDuration,
   fmtLongDate,
   getPerson,
   getTask,
@@ -67,7 +68,7 @@ export default function CalendarPage() {
       wide
       overline="Overview"
       title="Team calendar"
-      subtitle="Everyone's day at a glance — where they are, what they're on, and what matters most."
+      subtitle="See where everyone is, what they're working on, and what matters most today."
       person={{ name: person.name, tint: person.tint }}
       onSignOut={() => {
         clearPerson();
@@ -197,7 +198,7 @@ function Block({ e, viewer }: { e: Entry; viewer: string }) {
     <div
       style={{ left: xOf(toMin(e.start)), width: Math.max(e.durationMins * PX - 4, 44) }}
       className={`group absolute inset-y-2 overflow-hidden rounded-lg border ${m.line} ${m.soft} pl-3 pr-2 py-1.5`}
-      title={`${task?.title ?? ""}${e.note ? " · " + e.note : ""} · ${e.start}–${endOf(e)} · ${e.place}`}
+      title={`${task?.title ?? ""}${e.note ? " · " + e.note : ""} · ${e.start} to ${endOf(e)} · ${e.place}`}
     >
       <span className={`absolute inset-y-0 left-0 w-1 ${m.bar}`} aria-hidden />
       <div className="flex items-center gap-1.5">
@@ -206,7 +207,7 @@ function Block({ e, viewer }: { e: Entry; viewer: string }) {
       </div>
       {e.note && <div className="truncate text-[11px] text-ink-2">{e.note}</div>}
       <div className="mt-0.5 flex items-center gap-1.5">
-        <span className="tnum text-[10px] text-muted">{e.start}–{endOf(e)}</span>
+        <span className="tnum text-[10px] text-muted">{e.start} · {fmtDuration(e.durationMins)}</span>
         <span className="text-[10px] text-muted">·</span>
         <span className="truncate text-[10px] text-muted">{e.place}</span>
         {isMeeting && (
