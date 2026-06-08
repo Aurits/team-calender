@@ -132,6 +132,29 @@ body {
   box-shadow: 0 1px 0 0 var(--color-accent);
 }
 
+/* free-form note: poem-style line breaks, a small bullet per line, rich-text (strike) */
+.note-area {
+  border: 0;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--color-ink-2);
+  padding: 0 0 0 18px;
+  min-height: 24px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  outline: none;
+  background-color: transparent;
+  background-image: radial-gradient(circle at 5px 11px, var(--color-ink) 2px, transparent 2.6px);
+  background-size: 100% 24px;
+  background-repeat: repeat-y;
+}
+.note-area:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
 /* range slider */
 .slider {
   -webkit-appearance: none;

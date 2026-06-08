@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Brand, Check, Clock, PageFrame, Pencil, Plus, PriorityTag, Select, X } from "@/components/ui";
 import { loadDay, saveDay, useSession } from "@/lib/session";
@@ -246,7 +246,12 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
                       <span className="truncate text-sm font-medium text-ink">{o?.label}</span>
                       <PriorityTag priority={e.priority} />
                     </div>
-                    {e.note && <div className="truncate text-xs text-muted">{e.note}</div>}
+                    {e.note && (
+                      <div
+                        className="note-area mt-1 text-[13px]"
+                        dangerouslySetInnerHTML={{ __html: e.note }}
+                      />
+                    )}
                   </div>
                   <span className="shrink-0 text-xs text-muted">{e.place}</span>
                 </li>
@@ -276,61 +281,54 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
   return frame(
     <div className="flex flex-col gap-4">
       <div className="card divide-y divide-hairline">
-        <div className="hidden grid-cols-[1.5fr_1.4fr_140px_120px_132px_128px_40px] gap-3 px-4 pb-2 pt-3 lg:grid">
-          {["Task", "Detail", "Start", "Duration", "Place", "Priority", ""].map((h, i) => (
-            <div key={i} className="overline">{h}</div>
+        <div className="hidden grid-cols-[1.6fr_140px_120px_140px_132px_40px] gap-2 px-4 pb-2 pt-3 lg:grid">
+          {["Task", "Start", "Duration", "Place", "Priority", ""].map((h, i) => (
+            <div key={i} className="overline px-3">{h}</div>
           ))}
         </div>
 
         {rows.map((r) => (
-          <div
-            key={r.id}
-            className="grid grid-cols-2 gap-x-3 gap-y-3 px-4 py-3.5 lg:grid-cols-[1.5fr_1.4fr_140px_120px_132px_128px_40px] lg:items-center lg:gap-3"
-          >
-            <div className="col-span-2 lg:col-span-1">
-              <span className="overline mb-1 block lg:hidden">Task</span>
-              <Select value={r.taskId} onChange={(v) => selectTask(r.id, v)} placeholder="Select a task…" options={taskOpts} />
+          <div key={r.id} className="px-4 py-3">
+            <div className="grid grid-cols-2 gap-x-2 gap-y-3 lg:grid-cols-[1.6fr_140px_120px_140px_132px_40px] lg:items-center lg:gap-2">
+              <div className="col-span-2 lg:col-span-1">
+                <span className="overline mb-1 block lg:hidden">Task</span>
+                <Select value={r.taskId} onChange={(v) => selectTask(r.id, v)} placeholder="Select a task…" options={taskOpts} />
+              </div>
+              <div>
+                <span className="overline mb-1 block lg:hidden">Start</span>
+                <Select
+                  value={r.start}
+                  onChange={(v) => update(r.id, { start: v })}
+                  options={timeOpts}
+                  variant="ghost"
+                  icon={<Clock width={15} height={15} className="text-muted" />}
+                />
+              </div>
+              <div>
+                <span className="overline mb-1 block lg:hidden">Duration</span>
+                <Select value={String(r.durationMins)} onChange={(v) => update(r.id, { durationMins: Number(v) })} options={durOpts} variant="ghost" />
+              </div>
+              <div>
+                <span className="overline mb-1 block lg:hidden">Place</span>
+                <Select value={r.place} onChange={(v) => update(r.id, { place: v })} placeholder="Place…" options={placeOpts} align="right" variant="ghost" />
+              </div>
+              <div>
+                <span className="overline mb-1 block lg:hidden">Priority</span>
+                <Select value={r.priority} onChange={(v) => update(r.id, { priority: v as Priority })} options={prioOpts} align="right" variant="ghost" />
+              </div>
+              <div className="col-span-2 flex justify-end lg:col-span-1 lg:justify-center">
+                <button
+                  onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((x) => x.id !== r.id) : rs))}
+                  disabled={rows.length === 1}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-high-soft hover:text-high-ink disabled:opacity-30 disabled:hover:bg-transparent"
+                  aria-label="Remove block"
+                >
+                  <X width={16} height={16} />
+                </button>
+              </div>
             </div>
-            <div className="col-span-2 lg:col-span-1">
-              <span className="overline mb-1 block lg:hidden">Detail</span>
-              <input
-                className="field-line"
-                placeholder="What exactly…"
-                value={r.note}
-                onChange={(e) => update(r.id, { note: e.target.value })}
-              />
-            </div>
-            <div>
-              <span className="overline mb-1 block lg:hidden">Start</span>
-              <Select
-                value={r.start}
-                onChange={(v) => update(r.id, { start: v })}
-                options={timeOpts}
-                icon={<Clock width={15} height={15} className="text-muted" />}
-              />
-            </div>
-            <div>
-              <span className="overline mb-1 block lg:hidden">Duration</span>
-              <Select value={String(r.durationMins)} onChange={(v) => update(r.id, { durationMins: Number(v) })} options={durOpts} />
-            </div>
-            <div>
-              <span className="overline mb-1 block lg:hidden">Place</span>
-              <Select value={r.place} onChange={(v) => update(r.id, { place: v })} placeholder="Place…" options={placeOpts} align="right" />
-            </div>
-            <div>
-              <span className="overline mb-1 block lg:hidden">Priority</span>
-              <Select value={r.priority} onChange={(v) => update(r.id, { priority: v as Priority })} options={prioOpts} align="right" />
-            </div>
-            <div className="col-span-2 flex justify-end lg:col-span-1 lg:justify-center">
-              <button
-                onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((x) => x.id !== r.id) : rs))}
-                disabled={rows.length === 1}
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-high-soft hover:text-high-ink disabled:opacity-30 disabled:hover:bg-transparent"
-                aria-label="Remove block"
-              >
-                <X width={16} height={16} />
-              </button>
-            </div>
+
+            <BlockDescription value={r.note} onChange={(v) => update(r.id, { note: v })} />
           </div>
         ))}
       </div>
@@ -368,5 +366,91 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
       </div>
     </div>,
     "Add your blocks for the day.",
+  );
+}
+
+/** A free-form note (rich text). Enter starts a new bulleted line; highlight text to strike it through. */
+function NoteArea({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [tip, setTip] = useState<{ x: number; y: number } | null>(null);
+
+  // set initial HTML once; afterwards the field is uncontrolled so the caret never jumps
+  useEffect(() => {
+    if (ref.current && ref.current.innerHTML !== value) ref.current.innerHTML = value;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const emit = () => ref.current && onChange(ref.current.innerHTML);
+
+  const refreshTip = () => {
+    const sel = window.getSelection();
+    const el = ref.current;
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed || !el) return setTip(null);
+    const range = sel.getRangeAt(0);
+    if (!el.contains(range.commonAncestorContainer)) return setTip(null);
+    const r = range.getBoundingClientRect();
+    const p = el.getBoundingClientRect();
+    setTip({ x: r.left - p.left + r.width / 2, y: r.top - p.top });
+  };
+
+  const toggleStrike = () => {
+    document.execCommand("strikeThrough");
+    emit();
+    setTip(null);
+  };
+
+  return (
+    <div className="relative">
+      <div
+        ref={ref}
+        contentEditable
+        suppressContentEditableWarning
+        role="textbox"
+        aria-multiline="true"
+        data-placeholder="Write a note… press Enter for a new line"
+        onInput={emit}
+        onMouseUp={refreshTip}
+        onKeyUp={refreshTip}
+        onBlur={() => window.setTimeout(() => setTip(null), 120)}
+        className="note-area"
+      />
+      {tip && (
+        <div
+          style={{ left: tip.x, top: tip.y }}
+          className="absolute z-30 -translate-x-1/2 -translate-y-[calc(100%+7px)] rounded-lg bg-ink px-1 py-1 shadow-[0_8px_24px_rgba(27,27,31,0.25)]"
+        >
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault();
+              toggleStrike();
+            }}
+            className="flex h-7 items-center rounded-md px-2.5 text-sm font-semibold text-white line-through transition-colors hover:bg-white/15"
+            title="Strike through"
+          >
+            S
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Description is hidden until needed; opens automatically when it already has content. */
+function BlockDescription({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(!!value);
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-muted transition-colors hover:text-accent-hover"
+      >
+        <Plus width={13} height={13} /> Add description
+      </button>
+    );
+  }
+  return (
+    <div className="mt-2 max-w-2xl">
+      <NoteArea value={value} onChange={onChange} />
+    </div>
   );
 }

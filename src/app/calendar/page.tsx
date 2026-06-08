@@ -205,7 +205,7 @@ function Block({ e, viewer }: { e: Entry; viewer: string }) {
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${m.dot}`} aria-hidden />
         <span className="truncate text-xs font-semibold text-ink">{task?.title}</span>
       </div>
-      {e.note && <div className="truncate text-[11px] text-ink-2">{e.note}</div>}
+      {e.note && <div className="truncate text-[11px] text-ink-2">{e.note.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()}</div>}
       <div className="mt-0.5 flex items-center gap-1.5">
         <span className="tnum text-[10px] text-muted">{e.start} · {fmtDuration(e.durationMins)}</span>
         <span className="text-[10px] text-muted">·</span>

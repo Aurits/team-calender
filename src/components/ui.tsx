@@ -109,6 +109,7 @@ export function Select({
   placeholder,
   icon,
   align = "left",
+  variant = "solid",
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -116,6 +117,7 @@ export function Select({
   placeholder?: string;
   icon?: ReactNode;
   align?: "left" | "right";
+  variant?: "solid" | "ghost";
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -135,7 +137,11 @@ export function Select({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 rounded-lg border border-hairline-2 bg-surface px-3 py-2 text-sm transition-colors hover:border-ink-2/40"
+        className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+          variant === "ghost"
+            ? "justify-start border border-transparent hover:bg-surface-2"
+            : "justify-between border border-hairline-2 bg-surface hover:border-ink-2/40"
+        }`}
       >
         <span className="flex min-w-0 items-center gap-2">
           {icon && <span className="shrink-0">{icon}</span>}
@@ -147,7 +153,7 @@ export function Select({
       </button>
       {open && (
         <div
-          className={`absolute z-30 mt-1.5 max-h-60 min-w-full overflow-auto rounded-xl border border-hairline bg-surface p-1 shadow-[0_12px_32px_rgba(27,27,31,0.14)] ${
+          className={`absolute z-30 mt-1.5 max-h-60 w-max min-w-full max-w-[min(22rem,80vw)] overflow-auto rounded-xl border border-hairline bg-surface p-1 shadow-[0_12px_32px_rgba(27,27,31,0.14)] ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >
@@ -163,8 +169,8 @@ export function Select({
                 o.value === value ? "bg-accent-soft text-accent-hover" : "text-ink hover:bg-surface-2"
               }`}
             >
-              <span className="truncate">{o.label}</span>
-              {o.value === value && <Check width={15} height={15} className="shrink-0" />}
+              <span className="whitespace-normal break-words">{o.label}</span>
+              {o.value === value && <Check width={15} height={15} className="mt-0.5 shrink-0" />}
             </button>
           ))}
         </div>
@@ -238,17 +244,23 @@ export function PageFrame({
 }) {
   const width = wide ? "max-w-[1460px]" : "max-w-[1180px]";
   const navEl = (
-    <nav className="flex items-center gap-4 sm:gap-5">
+    <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
       {NAV.filter((n) => n.key !== here).map((n) => (
-        <Link key={n.key} href={n.href} className="navlink">
+        <Link key={n.key} href={n.href} className="navlink group">
           {n.label}
+          <ArrowUpRight
+            width={14}
+            height={14}
+            className="transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          />
         </Link>
       ))}
     </nav>
   );
   const right = (
-    <div className="flex items-center gap-4 sm:gap-6">
+    <div className="flex items-center gap-4 sm:gap-5">
       {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <span className="hidden h-5 w-px bg-hairline sm:inline-block" />}
       {navEl}
     </div>
   );
@@ -282,7 +294,7 @@ export function PageFrame({
             {right}
           </div>
         ) : title ? (
-          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
             <div>
               {overline && <div className="overline mb-2">{overline}</div>}
               <h1 className="font-display text-[28px] leading-none text-ink sm:text-[34px]">{title}</h1>
