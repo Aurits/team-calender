@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Brand, Check, Clock, NoteArea, PageFrame, Pencil, Plus, PriorityTag, Select, X } from "@/components/ui";
+import { ArrowRight, Brand, Check, Clock, LoadingScreen, NoteArea, PageFrame, Pencil, Plus, PriorityTag, Select, Spinner, X } from "@/components/ui";
 import { useSession } from "@/lib/session";
 import { fetchDay, saveDayApi, verifyPin } from "@/lib/api";
 import { usePeople } from "@/lib/people";
@@ -25,7 +25,7 @@ export default function Home() {
   const { personId, setPersonId } = useSession();
 
   if (personId === undefined) {
-    return <div className="min-h-dvh" />; // first paint, before localStorage read
+    return <LoadingScreen />; // first paint, before localStorage read
   }
   if (personId === null) {
     return <SignIn onSignIn={setPersonId} />;
@@ -280,8 +280,14 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
     </PageFrame>
   );
 
-  if (!person) return <div className="min-h-dvh" />;
-  if (!ready) return frame(<div className="h-40" />, "");
+  if (!person) return <LoadingScreen />;
+  if (!ready)
+    return frame(
+      <div className="flex h-40 items-center justify-center">
+        <Spinner className="text-muted" />
+      </div>,
+      "",
+    );
 
   /* ---- view: the plan they already entered ---- */
   if (mode === "view") {

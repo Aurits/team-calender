@@ -7,6 +7,7 @@ import {
   Avatar,
   Chevron,
   Grip,
+  LoadingScreen,
   NoteArea,
   PageFrame,
   Pencil,
@@ -14,6 +15,7 @@ import {
   Plus,
   PriorityTag,
   Select,
+  Spinner,
   Trash,
 } from "@/components/ui";
 import { clearPerson, useRequirePerson } from "@/lib/session";
@@ -182,6 +184,7 @@ export default function ManagePage() {
   const [addingWs, setAddingWs] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [drag, setDrag] = useState<{ id: string; l1?: string } | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const skipSave = useRef(true);
   useEffect(() => {
@@ -199,12 +202,16 @@ export default function ManagePage() {
       skipSave.current = false;
       return;
     }
-    taskStore.save(tree).catch((e) => console.error("Couldn't save tasks", e));
+    setSaving(true);
+    taskStore
+      .save(tree)
+      .catch((e) => console.error("Couldn't save tasks", e))
+      .finally(() => setSaving(false));
   }, [tree]);
 
-  if (!personId || tree === null) return <div className="min-h-dvh" />;
+  if (!personId || tree === null) return <LoadingScreen label="Loading tasks…" />;
   const person = getPerson(personId);
-  if (!person) return <div className="min-h-dvh" />;
+  if (!person) return <LoadingScreen />;
 
   const toggle = (id: string) => setOpen((o) => ({ ...o, [id]: !o[id] }));
 

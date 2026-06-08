@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Entry } from "./types";
 
 const PKEY = "cadence:person";
-const dayKey = (id: string) => `cadence:day:${id}`;
 
 export function loadPerson(): string | null {
   if (typeof window === "undefined") return null;
@@ -16,19 +14,6 @@ export function savePerson(id: string) {
 }
 export function clearPerson() {
   localStorage.removeItem(PKEY);
-}
-
-export function loadDay(id: string): Entry[] | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(dayKey(id));
-    return raw ? (JSON.parse(raw) as Entry[]) : null;
-  } catch {
-    return null;
-  }
-}
-export function saveDay(id: string, entries: Entry[]) {
-  localStorage.setItem(dayKey(id), JSON.stringify(entries));
 }
 
 /** undefined = still loading, null = signed out, string = signed in */

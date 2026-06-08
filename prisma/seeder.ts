@@ -52,8 +52,8 @@ const workstreams = [
 
 /* ------------------------------ entries -------------------------------- */
 const PLACES = ["Main Office", "Izumi", "Sugimoto", "Remote", "Ogasawara Site"];
-const DURS = [30, 60, 60, 90, 120];
-const GAPS = [0, 0, 15, 30, 60]; // minutes left between consecutive blocks
+const DURS = [30, 60, 60, 90, 120, 120, 180, 240]; // includes 3h and 4h blocks
+const GAPS = [0, 15, 30, 30, 45, 60, 90]; // minutes left between consecutive blocks
 const hhmm = (min: number) =>
   `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
 const PRIOS = ["high", "medium", "low"];
@@ -102,14 +102,17 @@ function buildEntries() {
     for (const person of people) {
       // Demo always gets a day; others occasionally take a day off.
       if (person.id !== "demo" && chance(0.2)) continue;
-      const count = person.id === "demo" ? 3 + Math.floor(Math.random() * 2) : 1 + Math.floor(Math.random() * 3);
-      // Pack the day sequentially so a person's own blocks never overlap.
-      let cursor = 8 * 60 + pick([0, 30, 60, 90]); // first block starts 08:00–09:30
-      for (let k = 0; k < count; k++) {
-        const dur = pick(DURS);
-        if (cursor + dur > 19 * 60) break; // keep within the working day
+      // Spread the day from ~9am. Most wrap up by 6pm; some work into the
+      // evening, and a few push tasks all the way to midnight.
+      const lateWorker = chance(0.3);
+      const dayEnd = lateWorker ? pick([20 * 60, 22 * 60, 24 * 60]) : 18 * 60;
+      const maxBlocks = person.id === "demo" ? 5 : 4;
+      let cursor = 9 * 60 + pick([0, 30, 60]); // first block starts 09:00–10:00
+      for (let k = 0; k < maxBlocks; k++) {
         // One early block today becomes a meeting for Demo / Andrew.
         const meeting = isToday && k === 0 && (person.id === "demo" || person.id === "p1");
+        const dur = meeting ? 60 : pick(DURS);
+        if (cursor + dur > dayEnd) break; // stop at this person's day end
         entries.push({
           id: `e${++n}`,
           personId: person.id,
@@ -132,7 +135,8 @@ function buildEntries() {
               : ["p1", "p3", "p9", "demo"]
             : [],
         });
-        cursor += dur + pick(GAPS); // advance past this block (+ a small gap)
+        cursor += dur + pick(GAPS); // advance past this block (+ a gap)
+        if (cursor >= dayEnd) break;
       }
     }
   }

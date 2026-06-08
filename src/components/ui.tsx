@@ -76,6 +76,24 @@ export const Sun = (p: SVGProps<SVGSVGElement>) => (
 export const Moon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...ico(p)}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>
 );
+export const Spinner = ({ className = "", ...p }: SVGProps<SVGSVGElement>) => (
+  <svg width={22} height={22} viewBox="0 0 24 24" fill="none" className={`animate-spin ${className}`} {...p}>
+    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeOpacity="0.2" />
+    <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);
+
+/* ---------------------------- LoadingScreen ---------------------------- */
+
+/** Full-height centered loader for page-level data fetches. */
+export function LoadingScreen({ label = "Loading…" }: { label?: string }) {
+  return (
+    <div className="flex h-dvh flex-col items-center justify-center gap-3 bg-canvas">
+      <Spinner className="text-accent" />
+      <span className="text-sm text-muted">{label}</span>
+    </div>
+  );
+}
 
 /* ------------------------------- Avatar -------------------------------- */
 

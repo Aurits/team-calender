@@ -1,4 +1,3 @@
-import { childrenOf, initiatives } from "./data";
 import type { Priority } from "./types";
 
 export interface TaskNode {
@@ -14,53 +13,14 @@ export interface Initiative extends TaskNode {
   children: TaskNode[];
 }
 
-/** Initial tree from the JSON seed (used only by the local fallback adapter). */
-function seed(): Initiative[] {
-  return initiatives.map((t) => ({
-    id: t.id,
-    title: t.title,
-    description: t.description,
-    priority: t.priority,
-    deadline: t.deadline,
-    place: t.defaultPlace ?? "",
-    assignees: t.assignees ?? [],
-    children: childrenOf(t.id).map((c) => ({
-      id: c.id,
-      title: c.title,
-      priority: c.priority,
-      place: c.defaultPlace ?? t.defaultPlace ?? "",
-      assignees: c.assignees ?? [],
-    })),
-  }));
-}
-
 /**
  * Storage adapter. The UI depends only on this async interface, so the backend
- * is a one-line swap (localStorage ⇄ Postgres API ⇄ anything else).
+ * is a one-line swap (Postgres API ⇄ anything else).
  */
 export interface TaskStore {
   load(): Promise<Initiative[]>;
   save(tree: Initiative[]): Promise<void>;
 }
-
-const KEY = "cadence:initiatives";
-
-/** Local fallback adapter: seeds from JSON, persists to localStorage. */
-export const localStore: TaskStore = {
-  async load() {
-    if (typeof window === "undefined") return seed();
-    try {
-      const raw = localStorage.getItem(KEY);
-      return raw ? (JSON.parse(raw) as Initiative[]) : seed();
-    } catch {
-      return seed();
-    }
-  },
-  async save(tree) {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(KEY, JSON.stringify(tree));
-  },
-};
 
 /** Postgres-backed adapter via the REST API. */
 export const apiStore: TaskStore = {
@@ -79,7 +39,7 @@ export const apiStore: TaskStore = {
   },
 };
 
-/** The active backend. Swap to `localStore` to run without a database. */
+/** The active backend. */
 export const taskStore: TaskStore = apiStore;
 
 /** A flat, selectable view of the tree — used by the Capture and Calendar pages. */

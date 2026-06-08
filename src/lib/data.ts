@@ -1,44 +1,10 @@
-import raw from "@/data/data.json";
-import type { Entry, Person, Priority, Task } from "./types";
+import type { Priority } from "./types";
 
 /** The app's "today" — the real current date (local). */
 export const demoDate: string = (() => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 })();
-export const people = raw.people as unknown as Person[];
-export const tasks = raw.tasks as unknown as Task[];
-/** Sample entries are mapped onto today so the current day always has data. */
-export const entries = (raw.entries as unknown as Entry[]).map((e) => ({ ...e, date: demoDate }));
-
-const personById = new Map(people.map((p) => [p.id, p]));
-const taskById = new Map(tasks.map((t) => [t.id, t]));
-
-export const getPerson = (id: string) => personById.get(id);
-export const getTask = (id: string) => taskById.get(id);
-
-export const initiatives = tasks.filter((t) => t.level === 1);
-export const childrenOf = (parentId: string) =>
-  tasks.filter((t) => t.parentId === parentId);
-
-/** Selectable tasks for the capture form: every L1 and L2, with a readable path. */
-export interface TaskOption {
-  id: string;
-  label: string;
-  level: 1 | 2;
-  priority: Priority;
-  place: string;
-}
-export const taskOptions: TaskOption[] = tasks.map((t) => {
-  const parent = t.parentId ? taskById.get(t.parentId) : undefined;
-  return {
-    id: t.id,
-    label: parent ? `${parent.title} › ${t.title}` : t.title,
-    level: t.level,
-    priority: t.priority,
-    place: t.defaultPlace ?? parent?.defaultPlace ?? "",
-  };
-});
 
 /* ----------------------------- time helpers ----------------------------- */
 

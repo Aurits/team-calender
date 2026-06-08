@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Avatar, Brand, Chevron, ProfileMenu, Users } from "@/components/ui";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Avatar, Brand, Chevron, LoadingScreen, ProfileMenu, Users } from "@/components/ui";
 import { clearPerson, useRequirePerson } from "@/lib/session";
 import {
   DAY_END,
@@ -110,9 +110,9 @@ export default function CalendarPage() {
     return { active, blocks: dayEntries.length, high };
   }, [dayEntries, people]);
 
-  if (!personId) return <div className="min-h-dvh" />;
+  if (!personId) return <LoadingScreen />;
   const person = getPerson(personId);
-  if (!person) return <div className="min-h-dvh" />;
+  if (!person) return <LoadingScreen />;
   const forPerson = (id: string) =>
     dayEntries.filter((e) => e.personId === id || e.attendees?.includes(id));
 
