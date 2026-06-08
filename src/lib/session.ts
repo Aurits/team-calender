@@ -20,8 +20,12 @@ export function clearPerson() {
 
 export function loadDay(id: string): Entry[] | null {
   if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem(dayKey(id));
-  return raw ? (JSON.parse(raw) as Entry[]) : null;
+  try {
+    const raw = localStorage.getItem(dayKey(id));
+    return raw ? (JSON.parse(raw) as Entry[]) : null;
+  } catch {
+    return null;
+  }
 }
 export function saveDay(id: string, entries: Entry[]) {
   localStorage.setItem(dayKey(id), JSON.stringify(entries));

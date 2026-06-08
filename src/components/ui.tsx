@@ -350,7 +350,7 @@ export function AssigneePicker({
                   on ? "bg-accent-soft" : "hover:bg-surface-2"
                 }`}
               >
-                <Avatar name={p.name} tint={p.tint} size="sm" />
+                <Avatar name={p.name} tint={p.tint} size="sm" tip={false} />
                 <span className="flex-1 text-sm text-ink">{p.name}</span>
                 <span className="text-[11px] text-muted">{p.role}</span>
                 {on && <Check width={15} height={15} className="text-accent-hover" />}

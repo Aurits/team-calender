@@ -49,8 +49,12 @@ const KEY = "cadence:initiatives";
 export const localStore: TaskStore = {
   load() {
     if (typeof window === "undefined") return seed();
-    const raw = localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as Initiative[]) : seed();
+    try {
+      const raw = localStorage.getItem(KEY);
+      return raw ? (JSON.parse(raw) as Initiative[]) : seed();
+    } catch {
+      return seed();
+    }
   },
   save(tree) {
     if (typeof window === "undefined") return;

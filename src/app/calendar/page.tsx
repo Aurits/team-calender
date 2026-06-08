@@ -60,7 +60,7 @@ function OffHours() {
 const shift = (iso: string, d: number) => {
   const x = new Date(iso + "T00:00:00");
   x.setDate(x.getDate() + d);
-  return x.toISOString().slice(0, 10);
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
 };
 
 export default function CalendarPage() {
@@ -167,7 +167,7 @@ export default function CalendarPage() {
               const pad = 6;
               const gap = 6;
               const rowHeight = ROW; // every row is the same height
-              const blockH = (rowHeight - pad * 2 - (lanes - 1) * gap) / lanes;
+              const blockH = Math.max(20, (rowHeight - pad * 2 - (lanes - 1) * gap) / lanes);
               return (
                 <div
                   key={p.id}

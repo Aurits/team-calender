@@ -194,7 +194,7 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
   const filled = rows.filter((r) => r.taskId);
   const conflictIds = useMemo(() => {
     const ids = new Set<number>();
-    const list = filled.map((r) => ({ id: r.id, s: toMin(r.start), e: toMin(r.start) + r.durationMins }));
+    const list = rows.filter((r) => r.taskId).map((r) => ({ id: r.id, s: toMin(r.start), e: toMin(r.start) + r.durationMins }));
     for (let i = 0; i < list.length; i++)
       for (let j = i + 1; j < list.length; j++)
         if (list[i].s < list[j].e && list[j].s < list[i].e) {
@@ -202,7 +202,7 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
           ids.add(list[j].id);
         }
     return ids;
-  }, [filled]);
+  }, [rows]);
 
   const save = () => {
     const es = toEntries(personId, rows);
@@ -250,7 +250,7 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
             {items.map((it, idx) =>
               it.kind === "anchor" ? (
                 <li key={`a-${idx}`} className="flex items-center gap-4 bg-surface-2/40 px-5 py-3">
-                  <span className="tnum w-12 shrink-0 text-sm font-medium text-muted">{it.a.start}</span>
+                  <span className="tnum w-16 shrink-0 text-sm font-medium text-muted">{fmtTime12(it.a.start)}</span>
                   <span className="h-7 w-px bg-hairline" />
                   <div className="flex flex-1 items-center gap-2">
                     <span className="text-sm font-medium text-ink-2">{it.a.label}</span>
@@ -261,7 +261,7 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
                 </li>
               ) : (
                 <li key={it.e.id} className="flex items-center gap-4 px-5 py-3.5">
-                  <span className="tnum w-12 shrink-0 text-sm font-medium text-ink">{it.e.start}</span>
+                  <span className="tnum w-16 shrink-0 text-sm font-medium text-ink">{fmtTime12(it.e.start)}</span>
                   <span className="h-8 w-px bg-hairline" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">

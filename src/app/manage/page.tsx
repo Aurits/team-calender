@@ -318,7 +318,7 @@ export default function ManagePage() {
                 className="group flex cursor-pointer select-none items-start gap-2 p-4"
               >
                 <span
-                  draggable
+                  draggable={!query.trim()}
                   onDragStart={(e) => {
                     setDrag({ id: l1.id });
                     e.dataTransfer.effectAllowed = "move";
@@ -424,7 +424,7 @@ export default function ManagePage() {
                       >
                         <div className="flex items-center gap-2">
                           <span
-                            draggable
+                            draggable={!query.trim()}
                             onDragStart={(e) => {
                               setDrag({ id: c.id, l1: l1.id });
                               e.dataTransfer.effectAllowed = "move";
@@ -447,7 +447,13 @@ export default function ManagePage() {
                             <IconBtn label="Edit workstream" onClick={() => setEditing(c.id)}>
                               <Pencil width={14} height={14} />
                             </IconBtn>
-                            <IconBtn label="Delete workstream" danger onClick={() => deleteWorkstream(l1.id, c.id)}>
+                            <IconBtn
+                              label="Delete workstream"
+                              danger
+                              onClick={() => {
+                                if (window.confirm(`Delete “${c.title}”?`)) deleteWorkstream(l1.id, c.id);
+                              }}
+                            >
                               <Trash width={14} height={14} />
                             </IconBtn>
                           </div>

@@ -224,7 +224,7 @@ body {
   height: 16px;
   border-radius: 50%;
   background: var(--color-accent);
-  border: 2px solid #fff;
+  border: 2px solid var(--color-surface);
   box-shadow: 0 1px 3px rgba(27, 27, 31, 0.25);
   cursor: pointer;
 }
@@ -233,7 +233,7 @@ body {
   height: 16px;
   border-radius: 50%;
   background: var(--color-accent);
-  border: 2px solid #fff;
+  border: 2px solid var(--color-surface);
   box-shadow: 0 1px 3px rgba(27, 27, 31, 0.25);
   cursor: pointer;
 }
@@ -268,7 +268,7 @@ body {
   color: var(--color-accent-hover);
 }
 .btn-soft:hover:not(:disabled) {
-  background: #dcdef7;
+  background: color-mix(in srgb, var(--color-accent-soft) 85%, var(--color-accent));
 }
 .btn-outline {
   background: var(--color-surface);
@@ -318,5 +318,5 @@ select:focus-visible,
 */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #c4c6cb transparent;
+  scrollbar-color: var(--color-hairline-2) transparent;
 }
