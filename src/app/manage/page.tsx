@@ -54,6 +54,7 @@ export default function ManagePage() {
   return (
     <PageFrame
       here="manage"
+      wide
       overline="Task list"
       title="Tasks"
       subtitle="The team's task list. Set the breakdown, priorities, and default places here."

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Brand, Check, Clock, PageFrame, Pencil, Plus, PriorityTag, Select, X } from "@/components/ui";
 import { loadDay, saveDay, useSession } from "@/lib/session";
 import {
+  anchors,
   demoDate,
   durationChoices,
   fmtDuration,
@@ -191,9 +192,16 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
     update(id, { taskId, place: o?.place || person.defaultPlace, priority: o?.priority ?? "medium" });
   };
   const filled = rows.filter((r) => r.taskId);
-  const overlaps = useMemo(() => {
-    const s = [...filled].sort((a, b) => toMin(a.start) - toMin(b.start));
-    return s.some((r, i) => i > 0 && toMin(r.start) < toMin(s[i - 1].start) + s[i - 1].durationMins);
+  const conflictIds = useMemo(() => {
+    const ids = new Set<number>();
+    const list = filled.map((r) => ({ id: r.id, s: toMin(r.start), e: toMin(r.start) + r.durationMins }));
+    for (let i = 0; i < list.length; i++)
+      for (let j = i + 1; j < list.length; j++)
+        if (list[i].s < list[j].e && list[j].s < list[i].e) {
+          ids.add(list[i].id);
+          ids.add(list[j].id);
+        }
+    return ids;
   }, [filled]);
 
   const save = () => {
@@ -206,11 +214,12 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
   const frame = (children: React.ReactNode, sub: string) => (
     <PageFrame
       here="today"
+      wide
       date={fmtLongDate(demoDate)}
       lead={
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="font-display text-2xl text-ink sm:text-[26px]">Hi, {person.name}</span>
-          <span className="text-sm text-muted">· {sub}</span>
+          {sub && <span className="text-sm text-muted">· {sub}</span>}
         </div>
       }
       person={{ name: person.name, tint: person.tint }}
@@ -224,50 +233,63 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
 
   /* ---- view: the plan they already entered ---- */
   if (mode === "view") {
-    const sorted = [...saved].sort((a, b) => toMin(a.start) - toMin(b.start));
+    const items = [
+      ...saved.map((e) => ({ kind: "entry" as const, start: e.start, e })),
+      ...anchors.map((a) => ({ kind: "anchor" as const, start: a.start, a })),
+    ].sort((x, y) => toMin(x.start) - toMin(y.start));
     return frame(
       <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
         <div className="card overflow-hidden">
           <div className="flex items-center justify-between border-b border-hairline px-5 py-3.5">
-            <span className="overline">Your plan · {sorted.length} blocks</span>
+            <span className="overline">Your plan · {saved.length} blocks</span>
             <button onClick={() => setMode("edit")} className="navlink text-accent-hover">
               <Pencil width={15} height={15} /> Edit
             </button>
           </div>
           <ul className="divide-y divide-hairline">
-            {sorted.map((e) => {
-              const o = taskOptions.find((x) => x.id === e.taskId);
-              return (
-                <li key={e.id} className="flex items-center gap-4 px-5 py-3.5">
-                  <span className="tnum w-12 shrink-0 text-sm font-medium text-ink">{e.start}</span>
+            {items.map((it, idx) =>
+              it.kind === "anchor" ? (
+                <li key={`a-${idx}`} className="flex items-center gap-4 bg-surface-2/40 px-5 py-3">
+                  <span className="tnum w-12 shrink-0 text-sm font-medium text-muted">{it.a.start}</span>
+                  <span className="h-7 w-px bg-hairline" />
+                  <div className="flex flex-1 items-center gap-2">
+                    <span className="text-sm font-medium text-ink-2">{it.a.label}</span>
+                    <span className="rounded-full border border-dashed border-hairline-2 px-1.5 py-0.5 text-[10px] text-muted">
+                      Auto · everyone
+                    </span>
+                  </div>
+                </li>
+              ) : (
+                <li key={it.e.id} className="flex items-center gap-4 px-5 py-3.5">
+                  <span className="tnum w-12 shrink-0 text-sm font-medium text-ink">{it.e.start}</span>
                   <span className="h-8 w-px bg-hairline" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="truncate text-sm font-medium text-ink">{o?.label}</span>
-                      <PriorityTag priority={e.priority} />
+                      <span className="truncate text-sm font-medium text-ink">
+                        {taskOptions.find((x) => x.id === it.e.taskId)?.label}
+                      </span>
+                      <PriorityTag priority={it.e.priority} />
                     </div>
-                    {e.note && (
+                    {it.e.note && (
                       <div
                         className="note-area mt-1 text-[13px]"
-                        dangerouslySetInnerHTML={{ __html: e.note }}
+                        dangerouslySetInnerHTML={{ __html: it.e.note }}
                       />
                     )}
                   </div>
-                  <span className="shrink-0 text-xs text-muted">{e.place}</span>
+                  <span className="shrink-0 text-xs text-muted">{it.e.place}</span>
                 </li>
-              );
-            })}
+              ),
+            )}
           </ul>
         </div>
 
-        <div className="card flex flex-col justify-between p-6">
-          <div>
-            <h2 className="font-display text-xl text-ink">All set for today.</h2>
-            <p className="mt-2 text-sm text-muted">
-              Your plan is shared with the team. See how your day fits alongside everyone else.
-            </p>
-          </div>
-          <Link href="/calendar" className="btn btn-primary mt-6">
+        <div className="card self-start p-6">
+          <h2 className="font-display text-xl text-ink">All set for today.</h2>
+          <p className="mt-2 text-sm text-muted">
+            Your plan is shared with the team. See how your day fits alongside everyone else.
+          </p>
+          <Link href="/calendar" className="btn btn-primary mt-5 w-full">
             See the team calendar
             <ArrowRight width={16} height={16} />
           </Link>
@@ -293,6 +315,11 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
               <div className="col-span-2 lg:col-span-1">
                 <span className="overline mb-1 block lg:hidden">Task</span>
                 <Select value={r.taskId} onChange={(v) => selectTask(r.id, v)} placeholder="Select a task…" options={taskOpts} />
+                {conflictIds.has(r.id) && (
+                  <span className="mt-1.5 inline-flex items-center gap-1.5 text-[11px] font-medium text-med-ink">
+                    <span className="h-1.5 w-1.5 rounded-full bg-med" /> Overlaps another block
+                  </span>
+                )}
               </div>
               <div>
                 <span className="overline mb-1 block lg:hidden">Start</span>
@@ -334,7 +361,17 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
       </div>
 
       <div>
-        <button onClick={() => setRows((rs) => [...rs, blank()])} className="btn btn-ghost">
+        <button
+          onClick={() =>
+            setRows((rs) => {
+              const next = blank();
+              const last = rs[rs.length - 1];
+              if (last) next.start = toHHMM(Math.min(toMin(last.start) + last.durationMins, 18 * 60));
+              return [...rs, next];
+            })
+          }
+          className="btn btn-ghost"
+        >
           <Plus width={16} height={16} /> Add block
         </button>
       </div>
@@ -347,8 +384,10 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline pt-4">
         <span className="text-xs">
-          {overlaps ? (
-            <span className="text-med-ink">Heads up: two of your blocks overlap in time.</span>
+          {conflictIds.size > 0 ? (
+            <span className="text-med-ink">
+              Heads up: {conflictIds.size} block{conflictIds.size === 1 ? "" : "s"} overlap in time.
+            </span>
           ) : (
             <span className="text-muted">Defaults come from the task. Change anything you like.</span>
           )}
@@ -380,22 +419,28 @@ function NoteArea({ value, onChange }: { value: string; onChange: (v: string) =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const emit = () => ref.current && onChange(ref.current.innerHTML);
+  // show the tooltip live as the selection changes (no wait for mouse release)
+  useEffect(() => {
+    const onSelect = () => {
+      const el = ref.current;
+      const sel = window.getSelection();
+      if (!el || !sel || sel.rangeCount === 0 || sel.isCollapsed) return setTip(null);
+      const range = sel.getRangeAt(0);
+      if (!el.contains(range.commonAncestorContainer)) return setTip(null);
+      const r = range.getBoundingClientRect();
+      const p = el.getBoundingClientRect();
+      setTip({ x: r.left - p.left + r.width / 2, y: r.top - p.top });
+    };
+    document.addEventListener("selectionchange", onSelect);
+    return () => document.removeEventListener("selectionchange", onSelect);
+  }, []);
 
-  const refreshTip = () => {
-    const sel = window.getSelection();
-    const el = ref.current;
-    if (!sel || sel.rangeCount === 0 || sel.isCollapsed || !el) return setTip(null);
-    const range = sel.getRangeAt(0);
-    if (!el.contains(range.commonAncestorContainer)) return setTip(null);
-    const r = range.getBoundingClientRect();
-    const p = el.getBoundingClientRect();
-    setTip({ x: r.left - p.left + r.width / 2, y: r.top - p.top });
-  };
+  const emit = () => ref.current && onChange(ref.current.innerHTML);
 
   const toggleStrike = () => {
     document.execCommand("strikeThrough");
     emit();
+    window.getSelection()?.collapseToEnd();
     setTip(null);
   };
 
@@ -409,9 +454,6 @@ function NoteArea({ value, onChange }: { value: string; onChange: (v: string) =>
         aria-multiline="true"
         data-placeholder="Write a note… press Enter for a new line"
         onInput={emit}
-        onMouseUp={refreshTip}
-        onKeyUp={refreshTip}
-        onBlur={() => window.setTimeout(() => setTip(null), 120)}
         className="note-area"
       />
       {tip && (
