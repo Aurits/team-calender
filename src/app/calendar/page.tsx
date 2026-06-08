@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Avatar, Brand, Chevron, Users } from "@/components/ui";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Avatar, Brand, Chevron, ProfileMenu, Users } from "@/components/ui";
 import { clearPerson, loadDay, useRequirePerson } from "@/lib/session";
 import {
   DAY_END,
@@ -132,18 +132,13 @@ export default function CalendarPage() {
             </Link>
           </nav>
           <span className="hidden h-5 w-px bg-hairline sm:block" />
-          <span className="hidden sm:inline-flex">
-            <Avatar name={person.name} tint={person.tint} size="sm" tip={false} />
-          </span>
-          <button
-            onClick={() => {
+          <ProfileMenu
+            person={{ name: person.name, tint: person.tint }}
+            onSignOut={() => {
               clearPerson();
               router.push("/");
             }}
-            className="navlink text-muted hover:text-ink"
-          >
-            Sign out
-          </button>
+          />
         </div>
       </header>
 

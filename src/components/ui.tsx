@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode, SVGProps } from "react";
 import type { Priority } from "@/lib/types";
 import { initialsOf, people, priorityMeta, tintClass } from "@/lib/data";
+import { useTheme } from "@/lib/theme";
 
 /* -------------------------------- icons -------------------------------- */
 
@@ -65,6 +66,15 @@ export const Grip = (p: SVGProps<SVGSVGElement>) => (
     <circle cx="15" cy="19" r="1.4" />
   </svg>
 );
+export const Sun = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...ico(p)}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+  </svg>
+);
+export const Moon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...ico(p)}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>
+);
 
 /* ------------------------------- Avatar -------------------------------- */
 
@@ -94,7 +104,7 @@ export function Avatar({
         {initialsOf(name)}
       </span>
       {tip && (
-        <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-1.5 py-0.5 text-[11px] font-medium text-white opacity-0 shadow-sm transition-opacity duration-100 group-hover/av:opacity-100">
+        <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-tip-bg px-1.5 py-0.5 text-[11px] font-medium text-white opacity-0 shadow-sm transition-opacity duration-100 group-hover/av:opacity-100">
           {name}
         </span>
       )}
@@ -260,7 +270,7 @@ export function NoteArea({
       {tip && (
         <div
           style={{ left: tip.x, top: tip.y }}
-          className="absolute z-50 -translate-x-1/2 -translate-y-[calc(100%+7px)] rounded-lg bg-ink px-1 py-1 shadow-[0_8px_24px_rgba(27,27,31,0.25)]"
+          className="absolute z-50 -translate-x-1/2 -translate-y-[calc(100%+7px)] rounded-lg bg-tip-bg px-1 py-1 shadow-[0_8px_24px_rgba(27,27,31,0.25)]"
         >
           <button
             onMouseDown={(e) => {
@@ -347,6 +357,77 @@ export function AssigneePicker({
               </button>
             );
           })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ----------------------------- ProfileMenu ----------------------------- */
+
+export function ProfileMenu({
+  person,
+  onSignOut,
+}: {
+  person: { name: string; tint: number };
+  onSignOut: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const [theme, setTheme] = useTheme();
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 rounded-full border border-hairline bg-surface py-1 pl-1 pr-2 transition-colors hover:bg-surface-2"
+      >
+        <Avatar name={person.name} tint={person.tint} size="sm" tip={false} />
+        <span className="hidden text-sm font-medium text-ink sm:inline">{person.name}</span>
+        <Chevron width={14} height={14} className={`text-muted transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-hairline bg-surface p-1.5 shadow-[0_14px_36px_rgba(0,0,0,0.22)]">
+          <div className="flex items-center gap-2.5 px-2 py-1.5">
+            <Avatar name={person.name} tint={person.tint} tip={false} />
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium text-ink">{person.name}</div>
+              <div className="truncate text-[11px] text-muted">Signed in</div>
+            </div>
+          </div>
+          <div className="my-1.5 h-px bg-hairline" />
+          <div className="px-2 pb-1">
+            <div className="overline mb-1.5">Theme</div>
+            <div className="flex gap-1 rounded-lg bg-surface-2 p-0.5">
+              {(["light", "dark"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium capitalize transition-colors ${
+                    theme === t ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink"
+                  }`}
+                >
+                  {t === "light" ? <Sun width={14} height={14} /> : <Moon width={14} height={14} />}
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="my-1.5 h-px bg-hairline" />
+          <button
+            onClick={onSignOut}
+            className="w-full rounded-lg px-2.5 py-2 text-left text-sm text-ink transition-colors hover:bg-surface-2"
+          >
+            Sign out
+          </button>
         </div>
       )}
     </div>
@@ -446,17 +527,7 @@ export function PageFrame({
           <div className="flex items-center gap-3 sm:gap-4">
             {date && <span className="hidden text-sm font-medium text-ink-2 md:inline">{date}</span>}
             {date && person && <span className="hidden h-4 w-px bg-hairline sm:inline-block" />}
-            {person && (
-              <span className="hidden sm:inline-flex">
-                <Avatar name={person.name} tint={person.tint} size="sm" />
-              </span>
-            )}
-            {person && <span className="hidden text-sm font-medium text-ink lg:inline">{person.name}</span>}
-            {onSignOut && (
-              <button onClick={onSignOut} className="navlink text-muted hover:text-ink">
-                Sign out
-              </button>
-            )}
+            {person && onSignOut && <ProfileMenu person={person} onSignOut={onSignOut} />}
           </div>
         </div>
       </header>

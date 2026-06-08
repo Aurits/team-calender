@@ -20,6 +20,8 @@
   --color-accent-hover: #4a4279;
   --color-accent-soft: #edebf6;
 
+  --color-tip-bg: #1b1c20;
+
   --color-high: #dc4b3e;
   --color-high-ink: #b5392e;
   --color-high-soft: #fbe7e4;
@@ -49,6 +51,51 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-bricolage);
+}
+
+/* Dark theme — overrides the semantic tokens; utilities pick them up automatically. */
+:root.dark {
+  --color-canvas: #16171c;
+  --color-surface: #1d1e24;
+  --color-surface-2: #262730;
+
+  --color-ink: #e9e9ee;
+  --color-ink-2: #b4b5be;
+  --color-muted: #83848e;
+  --color-hairline: #2c2e36;
+  --color-hairline-2: #3a3c46;
+
+  --color-accent: #8b81d6;
+  --color-accent-hover: #9c93e0;
+  --color-accent-soft: #2a2740;
+
+  --color-tip-bg: #34363f;
+
+  --color-high: #ef6b62;
+  --color-high-ink: #f3938c;
+  --color-high-soft: #3a2629;
+  --color-high-line: #5c393c;
+
+  --color-med: #e0a23a;
+  --color-med-ink: #e8be7a;
+  --color-med-soft: #38301f;
+  --color-med-line: #574c32;
+
+  --color-low: #9a9ca6;
+  --color-low-ink: #aeb0ba;
+  --color-low-soft: #2a2c34;
+  --color-low-line: #41434d;
+
+  --color-av1-bg: #2a2740;
+  --color-av1-ink: #a99fe6;
+  --color-av2-bg: #3a2a26;
+  --color-av2-ink: #d08c78;
+  --color-av3-bg: #26342c;
+  --color-av3-ink: #7fb08e;
+  --color-av4-bg: #3a3120;
+  --color-av4-ink: #d3aa5f;
+  --color-av5-bg: #2f2a3c;
+  --color-av5-ink: #a994c8;
 }
 
 html {
