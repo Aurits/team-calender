@@ -1,10 +1,15 @@
 import raw from "@/data/data.json";
 import type { Entry, Person, Priority, Task } from "./types";
 
-export const demoDate: string = raw.demoDate;
+/** The app's "today" — the real current date (local). */
+export const demoDate: string = (() => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+})();
 export const people = raw.people as unknown as Person[];
 export const tasks = raw.tasks as unknown as Task[];
-export const entries = raw.entries as unknown as Entry[];
+/** Sample entries are mapped onto today so the current day always has data. */
+export const entries = (raw.entries as unknown as Entry[]).map((e) => ({ ...e, date: demoDate }));
 
 const personById = new Map(people.map((p) => [p.id, p]));
 const taskById = new Map(tasks.map((t) => [t.id, t]));

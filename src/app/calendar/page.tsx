@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Avatar, PageFrame, Users } from "@/components/ui";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Avatar, Brand, Chevron, Users } from "@/components/ui";
 import { clearPerson, loadDay, useRequirePerson } from "@/lib/session";
 import {
   DAY_END,
@@ -69,8 +70,13 @@ export default function CalendarPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollLeft = xOf(7 * 60);
-  }, []);
+    const el = scrollRef.current;
+    if (!el || !personId) return;
+    const d = new Date();
+    const now = d.getHours() * 60 + d.getMinutes();
+    // center the current time of day within the visible track
+    el.scrollLeft = Math.max(0, COL + xOf(now) - el.clientWidth / 2);
+  }, [personId]);
 
   const dayEntries = useMemo(() => {
     const out: Entry[] = [];
@@ -96,40 +102,54 @@ export default function CalendarPage() {
     dayEntries.filter((e) => e.personId === id || e.attendees?.includes(id));
 
   return (
-    <PageFrame
-      here="calendar"
-      wide
-      overline="Overview"
-      title="Team calendar"
-      subtitle="See where everyone is, what they're working on, and what matters most today."
-      person={{ name: person.name, tint: person.tint }}
-      onSignOut={() => {
-        clearPerson();
-        router.push("/");
-      }}
-      actions={
-        <div className="flex items-center gap-1 rounded-xl border border-hairline bg-surface p-1">
-          <button onClick={() => setDate((d) => shift(d, -1))} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-ink" aria-label="Previous day">
-            <ArrowLeft />
-          </button>
-          <button onClick={() => setDate(demoDate)} className="min-w-[176px] rounded-lg px-3 py-1.5 text-center text-sm font-medium text-ink hover:bg-surface-2">
-            {fmtLongDate(date)}
-          </button>
-          <button onClick={() => setDate((d) => shift(d, 1))} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-ink" aria-label="Next day">
-            <ArrowRight />
+    <div className="flex h-dvh flex-col bg-canvas">
+      {/* slim toolbar */}
+      <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-hairline px-4 sm:px-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <Brand />
+          <span className="hidden h-5 w-px bg-hairline sm:block" />
+          <h1 className="hidden truncate font-display text-lg text-ink sm:block">Team calendar</h1>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 rounded-xl border border-hairline bg-surface p-1">
+            <button onClick={() => setDate((d) => shift(d, -1))} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-ink" aria-label="Previous day">
+              <ArrowLeft />
+            </button>
+            <DateMenu date={date} onPick={setDate} />
+            <button onClick={() => setDate((d) => shift(d, 1))} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-ink" aria-label="Next day">
+              <ArrowRight />
+            </button>
+          </div>
+          <span className="hidden h-5 w-px bg-hairline md:block" />
+          <nav className="hidden items-center gap-4 md:flex">
+            <Link href="/" className="navlink">
+              Today
+              <ArrowUpRight width={14} height={14} />
+            </Link>
+            <Link href="/manage" className="navlink">
+              Tasks
+              <ArrowUpRight width={14} height={14} />
+            </Link>
+          </nav>
+          <span className="hidden h-5 w-px bg-hairline sm:block" />
+          <span className="hidden sm:inline-flex">
+            <Avatar name={person.name} tint={person.tint} size="sm" tip={false} />
+          </span>
+          <button
+            onClick={() => {
+              clearPerson();
+              router.push("/");
+            }}
+            className="navlink text-muted hover:text-ink"
+          >
+            Sign out
           </button>
         </div>
-      }
-    >
-      {/* summary chips */}
-      <div className="mb-5 flex flex-wrap items-center gap-3">
-        <Stat value={stats.active} label="people scheduled" />
-        <Stat value={stats.blocks} label="time blocks" />
-        <Stat value={stats.high} label="high priority" />
-      </div>
+      </header>
 
-      <div className="card relative overflow-hidden">
-        <div ref={scrollRef} className="scroll-quiet max-h-[82vh] overflow-auto">
+      {/* calendar fills the rest */}
+      <div className="relative min-h-0 flex-1">
+        <div ref={scrollRef} className="scroll-quiet h-full overflow-auto">
           <div style={{ width: COL + TRACK }} className="relative">
             {/* time header */}
             <div className="sticky top-0 z-30 flex h-11 items-stretch border-b border-hairline bg-surface-2">
@@ -197,8 +217,16 @@ export default function CalendarPage() {
         )}
       </div>
 
-      <Legend />
-    </PageFrame>
+      {/* footer: stats + legend */}
+      <footer className="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-hairline px-4 py-2 sm:px-5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Stat value={stats.active} label="people scheduled" />
+          <Stat value={stats.blocks} label="time blocks" />
+          <Stat value={stats.high} label="high priority" />
+        </div>
+        <Legend />
+      </footer>
+    </div>
   );
 }
 
@@ -207,6 +235,50 @@ function Stat({ value, label }: { value: number; label: string }) {
     <span className="rounded-full border border-hairline bg-surface px-3 py-1 text-xs text-muted">
       {value} {label}
     </span>
+  );
+}
+
+/** Date picker showing the last 7 days. */
+function DateMenu({ date, onPick }: { date: string; onPick: (d: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+  const days = Array.from({ length: 7 }, (_, i) => shift(demoDate, -i));
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex min-w-[140px] items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-ink hover:bg-surface-2 sm:min-w-[176px]"
+      >
+        {fmtLongDate(date)}
+        <Chevron width={14} height={14} className={`text-muted transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute left-1/2 z-50 mt-1.5 w-60 -translate-x-1/2 rounded-xl border border-hairline bg-surface p-1 shadow-[0_12px_32px_rgba(27,27,31,0.14)]">
+          {days.map((d) => (
+            <button
+              key={d}
+              onClick={() => {
+                onPick(d);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                d === date ? "bg-accent-soft text-accent-hover" : "text-ink hover:bg-surface-2"
+              }`}
+            >
+              <span>{fmtLongDate(d)}</span>
+              {d === demoDate && <span className="text-[10px] font-medium text-muted">Today</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -281,7 +353,7 @@ function Block({ e, top, height }: { e: Entry; top: number; height: number }) {
 
 function Legend() {
   return (
-    <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-muted">
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted">
       <span className="overline">Legend</span>
       {(["high", "medium", "low"] as const).map((p) => (
         <span key={p} className="flex items-center gap-1.5">
