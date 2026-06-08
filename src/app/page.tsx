@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Brand, Check, Clock, NoteArea, PageFrame, Pencil, Plus, PriorityTag, Select, X } from "@/components/ui";
 import { useSession } from "@/lib/session";
 import { fetchDay, saveDayApi, verifyPin } from "@/lib/api";
+import { usePeople } from "@/lib/people";
 import { flattenTasks, taskStore, type TaskRef } from "@/lib/tasks";
 import {
   anchors,
@@ -13,7 +14,6 @@ import {
   fmtDuration,
   fmtLongDate,
   fmtTime12,
-  getPerson,
   placeChoices,
   priorityMeta,
   toHHMM,
@@ -190,7 +190,8 @@ const timeOpts = (() => {
 })();
 
 function Today({ personId, onSignOut }: { personId: string; onSignOut: () => void }) {
-  const person = getPerson(personId)!;
+  const { getPerson } = usePeople();
+  const person = getPerson(personId);
   const [ready, setReady] = useState(false);
   const [saved, setSaved] = useState<Entry[]>([]);
   const [mode, setMode] = useState<"view" | "edit">("edit");
@@ -239,7 +240,7 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   const selectTask = (id: number, taskId: string) => {
     const o = taskRefs.find((x) => x.id === taskId);
-    update(id, { taskId, place: o?.place || person.defaultPlace, priority: o?.priority ?? "medium" });
+    update(id, { taskId, place: o?.place || person?.defaultPlace || "Main Office", priority: o?.priority ?? "medium" });
   };
   const filled = rows.filter((r) => r.taskId);
   const conflictIds = useMemo(() => {
@@ -268,17 +269,18 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
       date={fmtLongDate(demoDate)}
       lead={
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <span className="font-display text-2xl text-ink sm:text-[26px]">Hi, {person.name}</span>
+          <span className="font-display text-2xl text-ink sm:text-[26px]">Hi, {person?.name}</span>
           {sub && <span className="text-sm text-muted">· {sub}</span>}
         </div>
       }
-      person={{ name: person.name, tint: person.tint }}
+      person={{ name: person?.name ?? "", tint: person?.tint ?? 1 }}
       onSignOut={onSignOut}
     >
       {children}
     </PageFrame>
   );
 
+  if (!person) return <div className="min-h-dvh" />;
   if (!ready) return frame(<div className="h-40" />, "");
 
   /* ---- view: the plan they already entered ---- */

@@ -13,14 +13,13 @@ import {
   endOf,
   fmtDuration,
   fmtLongDate,
-  getPerson,
   hourTicks,
-  people,
   priorityMeta,
   toHHMM,
   toMin,
 } from "@/lib/data";
 import { fetchEntries } from "@/lib/api";
+import { usePeople } from "@/lib/people";
 import { flattenTasks, taskStore } from "@/lib/tasks";
 import type { Entry, Priority } from "@/lib/types";
 
@@ -66,6 +65,7 @@ const shift = (iso: string, d: number) => {
 export default function CalendarPage() {
   const personId = useRequirePerson();
   const router = useRouter();
+  const { people, getPerson } = usePeople();
   const [date, setDate] = useState(demoDate);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -76,7 +76,7 @@ export default function CalendarPage() {
     const now = d.getHours() * 60 + d.getMinutes();
     // center the current time of day within the visible track
     el.scrollLeft = Math.max(0, COL + xOf(now) - el.clientWidth / 2);
-  }, [personId]);
+  }, [personId, people]);
 
   const [dayEntries, setDayEntries] = useState<Entry[]>([]);
   const [taskTitles, setTaskTitles] = useState<Map<string, string>>(new Map());
@@ -108,10 +108,11 @@ export default function CalendarPage() {
     ).length;
     const high = dayEntries.filter((e) => e.priority === "high").length;
     return { active, blocks: dayEntries.length, high };
-  }, [dayEntries]);
+  }, [dayEntries, people]);
 
   if (!personId) return <div className="min-h-dvh" />;
-  const person = getPerson(personId)!;
+  const person = getPerson(personId);
+  if (!person) return <div className="min-h-dvh" />;
   const forPerson = (id: string) =>
     dayEntries.filter((e) => e.personId === id || e.attendees?.includes(id));
 
@@ -214,6 +215,7 @@ export default function CalendarPage() {
                         top={pad + lane * (blockH + gap)}
                         height={blockH}
                         title={taskTitles.get(e.taskId) ?? ""}
+                        names={(e.attendees ?? []).map((id) => getPerson(id)?.name).filter((n): n is string => Boolean(n))}
                       />
                     ))}
                   </div>
@@ -324,13 +326,24 @@ function Anchor({ label, start, dur }: { label: string; start: string; dur: numb
   );
 }
 
-function Block({ e, top, height, title }: { e: Entry; top: number; height: number; title: string }) {
+function Block({
+  e,
+  top,
+  height,
+  title,
+  names,
+}: {
+  e: Entry;
+  top: number;
+  height: number;
+  title: string;
+  names: string[];
+}) {
   const m = priorityMeta[e.priority as Priority];
   const isMeeting = (e.attendees?.length ?? 0) > 1;
   const note = e.note?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   const showNote = height >= 56 && !!note;
   const showMeta = height >= 38;
-  const names = (e.attendees ?? []).map((id) => getPerson(id)?.name).filter(Boolean);
   const tip = [
     title,
     note,

@@ -20,13 +20,13 @@ const people = [
   { id: "demo", pin: "0000", name: "Demo User", role: "Guest", defaultPlace: "Main Office", tint: 1 },
   { id: "p1", pin: "4821", name: "Andrew", role: "Engineer", defaultPlace: "Main Office", tint: 1 },
   { id: "p2", pin: "2470", name: "Matsumoto", role: "Manager", defaultPlace: "Sugimoto", tint: 2 },
-  { id: "p3", pin: "1009", name: "Inaba", role: "Developer", defaultPlace: "Izumi", tint: 3 },
-  { id: "p4", pin: "3388", name: "Nate", role: "Designer", defaultPlace: "Main Office", tint: 4 },
-  { id: "p5", pin: "7777", name: "Prakhar", role: "Engineer", defaultPlace: "Remote", tint: 5 },
-  { id: "p6", pin: "1111", name: "Nishinaga", role: "Developer", defaultPlace: "Main Office", tint: 1 },
+  { id: "p3", pin: "1009", name: "Inaba", role: "Manager", defaultPlace: "Izumi", tint: 3 },
+  { id: "p4", pin: "3388", name: "Nate", role: "Manager", defaultPlace: "Main Office", tint: 4 },
+  { id: "p5", pin: "7777", name: "Prakhar", role: "Manager", defaultPlace: "Remote", tint: 5 },
+  { id: "p6", pin: "1111", name: "Nishinaga", role: "Manager", defaultPlace: "Main Office", tint: 1 },
   { id: "p7", pin: "2222", name: "Kevin", role: "Engineer", defaultPlace: "Main Office", tint: 2 },
-  { id: "p8", pin: "3333", name: "Martin", role: "Analyst", defaultPlace: "Izumi", tint: 3 },
-  { id: "p9", pin: "4444", name: "Ambrose", role: "Developer", defaultPlace: "Ogasawara Site", tint: 4 },
+  { id: "p8", pin: "3333", name: "Martin", role: "Engineer", defaultPlace: "Izumi", tint: 3 },
+  { id: "p9", pin: "4444", name: "Ambrose", role: "Engineer", defaultPlace: "Ogasawara Site", tint: 4 },
 ];
 
 /* ------------------------------- tasks --------------------------------- */
@@ -52,11 +52,10 @@ const workstreams = [
 
 /* ------------------------------ entries -------------------------------- */
 const PLACES = ["Main Office", "Izumi", "Sugimoto", "Remote", "Ogasawara Site"];
-const STARTS = [
-  "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-  "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00",
-];
 const DURS = [30, 60, 60, 90, 120];
+const GAPS = [0, 0, 15, 30, 60]; // minutes left between consecutive blocks
+const hhmm = (min: number) =>
+  `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
 const PRIOS = ["high", "medium", "low"];
 const NOTES = [
   "Review and align on scope",
@@ -96,61 +95,47 @@ function buildEntries() {
     attendees: string[];
   }[] = [];
   let n = 0;
+  const todayStr = dates[0];
 
   for (const date of dates) {
+    const isToday = date === todayStr;
     for (const person of people) {
       // Demo always gets a day; others occasionally take a day off.
       if (person.id !== "demo" && chance(0.2)) continue;
-      const count = person.id === "demo" ? 2 + Math.floor(Math.random() * 3) : 1 + Math.floor(Math.random() * 3);
-      const used = new Set<string>();
+      const count = person.id === "demo" ? 3 + Math.floor(Math.random() * 2) : 1 + Math.floor(Math.random() * 3);
+      // Pack the day sequentially so a person's own blocks never overlap.
+      let cursor = 8 * 60 + pick([0, 30, 60, 90]); // first block starts 08:00–09:30
       for (let k = 0; k < count; k++) {
-        let start = pick(STARTS);
-        // try to avoid exact duplicate start times for the same person/day
-        let guard = 0;
-        while (used.has(start) && guard++ < 5) start = pick(STARTS);
-        used.add(start);
+        const dur = pick(DURS);
+        if (cursor + dur > 19 * 60) break; // keep within the working day
+        // One early block today becomes a meeting for Demo / Andrew.
+        const meeting = isToday && k === 0 && (person.id === "demo" || person.id === "p1");
         entries.push({
           id: `e${++n}`,
           personId: person.id,
-          taskId: pick(wsIds),
-          note: chance(0.7) ? pick(NOTES) : null,
+          taskId: meeting ? (person.id === "demo" ? "t21" : "t11") : pick(wsIds),
+          note: meeting
+            ? person.id === "demo"
+              ? "Launch standup with the build team"
+              : "Ogasawara site sync"
+            : chance(0.7)
+              ? pick(NOTES)
+              : null,
           date,
-          start,
-          durationMins: pick(DURS),
-          place: chance(0.6) ? person.defaultPlace : pick(PLACES),
-          priority: pick(PRIOS),
-          attendees: [],
+          start: hhmm(cursor),
+          durationMins: dur,
+          place: meeting || chance(0.6) ? person.defaultPlace : pick(PLACES),
+          priority: meeting ? "high" : pick(PRIOS),
+          attendees: meeting
+            ? person.id === "demo"
+              ? ["demo", "p2", "p6", "p7"]
+              : ["p1", "p3", "p9", "demo"]
+            : [],
         });
+        cursor += dur + pick(GAPS); // advance past this block (+ a small gap)
       }
     }
   }
-
-  // A couple of meetings on today's date (Demo included).
-  const todayStr = dates[0];
-  entries.push({
-    id: `e${++n}`,
-    personId: "demo",
-    taskId: "t21",
-    note: "Launch standup with the build team",
-    date: todayStr,
-    start: "11:00",
-    durationMins: 60,
-    place: "Main Office",
-    priority: "high",
-    attendees: ["demo", "p2", "p6", "p7"],
-  });
-  entries.push({
-    id: `e${++n}`,
-    personId: "p1",
-    taskId: "t11",
-    note: "Ogasawara site sync",
-    date: todayStr,
-    start: "15:00",
-    durationMins: 60,
-    place: "Ogasawara Site",
-    priority: "high",
-    attendees: ["p1", "p3", "p9", "demo"],
-  });
 
   return entries;
 }

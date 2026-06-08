@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode, SVGProps } from "react";
 import type { Priority } from "@/lib/types";
-import { initialsOf, people, priorityMeta, tintClass } from "@/lib/data";
+import { initialsOf, priorityMeta, tintClass } from "@/lib/data";
+import { usePeople } from "@/lib/people";
 import { useTheme } from "@/lib/theme";
 
 /* -------------------------------- icons -------------------------------- */
@@ -309,6 +310,7 @@ export function AssigneePicker({
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
+  const { people } = usePeople();
   const selected = people.filter((p) => value.includes(p.id));
   const toggle = (id: string) =>
     onChange(value.includes(id) ? value.filter((x) => x !== id) : [...value, id]);

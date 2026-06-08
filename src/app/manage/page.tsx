@@ -17,7 +17,8 @@ import {
   Trash,
 } from "@/components/ui";
 import { clearPerson, useRequirePerson } from "@/lib/session";
-import { getPerson, placeChoices, priorityMeta } from "@/lib/data";
+import { usePeople } from "@/lib/people";
+import { placeChoices, priorityMeta } from "@/lib/data";
 import { taskStore, type Initiative, type TaskNode } from "@/lib/tasks";
 import type { Priority } from "@/lib/types";
 
@@ -41,6 +42,7 @@ const newId = () => "n" + Math.random().toString(36).slice(2, 9);
 /* ----------------------------- small bits ------------------------------ */
 
 function AvatarStack({ ids }: { ids: string[] }) {
+  const { getPerson } = usePeople();
   if (!ids.length) return null;
   return (
     <div className="flex items-center -space-x-2">
@@ -172,6 +174,7 @@ function TaskForm({
 export default function ManagePage() {
   const personId = useRequirePerson();
   const router = useRouter();
+  const { getPerson } = usePeople();
   const [tree, setTree] = useState<Initiative[] | null>(null);
   const [open, setOpen] = useState<Record<string, boolean>>({ t1: true });
   const [addingL1, setAddingL1] = useState(false);
@@ -200,7 +203,8 @@ export default function ManagePage() {
   }, [tree]);
 
   if (!personId || tree === null) return <div className="min-h-dvh" />;
-  const person = getPerson(personId)!;
+  const person = getPerson(personId);
+  if (!person) return <div className="min-h-dvh" />;
 
   const toggle = (id: string) => setOpen((o) => ({ ...o, [id]: !o[id] }));
 
