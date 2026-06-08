@@ -92,8 +92,12 @@ function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
           ))}
         </div>
 
-        <p className={`mt-3 h-4 text-center text-xs font-medium text-high-ink transition-opacity ${error ? "opacity-100" : "opacity-0"}`}>
-          Incorrect PIN. Try again.
+        <p
+          className={`mt-3 h-4 text-center text-xs font-medium transition-opacity ${
+            error ? "text-high-ink opacity-100" : checking ? "text-muted opacity-100" : "opacity-0"
+          }`}
+        >
+          {error ? "Incorrect PIN. Try again." : "Checking…"}
         </p>
 
         <div className="mt-2 grid grid-cols-3 gap-2 sm:gap-2.5">
@@ -182,7 +186,7 @@ const prioOpts = (["high", "medium", "low"] as const).map((p) => ({
 const durOpts = durationChoices.map((d) => ({ value: String(d), label: fmtDuration(d) }));
 const timeOpts = (() => {
   const out: { value: string; label: string }[] = [];
-  for (let m = 8 * 60; m <= 18 * 60; m += 15) {
+  for (let m = 8 * 60; m < 24 * 60; m += 15) {
     const hhmm = toHHMM(m);
     out.push({ value: hhmm, label: fmtTime12(hhmm) });
   }
@@ -424,7 +428,7 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
             setRows((rs) => {
               const next = blank();
               const last = rs[rs.length - 1];
-              if (last) next.start = toHHMM(Math.min(toMin(last.start) + last.durationMins, 18 * 60));
+              if (last) next.start = toHHMM(Math.min(toMin(last.start) + last.durationMins, 23 * 60 + 45));
               return [...rs, next];
             })
           }

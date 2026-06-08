@@ -293,6 +293,11 @@ export default function ManagePage() {
         <span className="rounded-full border border-hairline bg-surface px-3 py-1 text-xs text-muted">
           {totalWs} workstreams
         </span>
+        {saving && (
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted">
+            <Spinner className="h-3.5 w-3.5" /> Saving…
+          </span>
+        )}
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
