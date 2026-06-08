@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Avatar, PageFrame, Users } from "@/components/ui";
 import { clearPerson, loadDay, useRequirePerson } from "@/lib/session";
@@ -25,9 +25,37 @@ import type { Entry, Priority } from "@/lib/types";
 
 const PX = 2;
 const COL = 200;
-const ROW = 80;
-const TRACK = (DAY_END - DAY_START) * PX;
-const xOf = (m: number) => (m - DAY_START) * PX;
+const ROW = 96; // uniform row height for every person
+const PAD = 16; // breathing room before 00:00 and after the last hour
+const WORK_START = 7 * 60;
+const TRACK = (DAY_END - DAY_START) * PX + PAD * 2;
+const xOf = (m: number) => PAD + (m - DAY_START) * PX;
+
+/** Greedy interval layout: assign each entry to the first lane it doesn't overlap. */
+function laneLayout(list: Entry[]) {
+  const sorted = [...list].sort((a, b) => toMin(a.start) - toMin(b.start));
+  const laneEnd: number[] = [];
+  const placed = sorted.map((e) => {
+    const s = toMin(e.start);
+    const end = s + e.durationMins;
+    let lane = laneEnd.findIndex((le) => le <= s);
+    if (lane === -1) {
+      lane = laneEnd.length;
+      laneEnd.push(end);
+    } else {
+      laneEnd[lane] = end;
+    }
+    return { e, lane };
+  });
+  return { placed, lanes: Math.max(laneEnd.length, 1) };
+}
+
+/** Faint shading over the early-morning hours (before 7am) so the working day stands out. */
+function OffHours() {
+  return (
+    <div style={{ left: 0, width: xOf(WORK_START) }} className="pointer-events-none absolute inset-y-0 bg-surface-2/60" />
+  );
+}
 const shift = (iso: string, d: number) => {
   const x = new Date(iso + "T00:00:00");
   x.setDate(x.getDate() + d);
@@ -38,6 +66,11 @@ export default function CalendarPage() {
   const personId = useRequirePerson();
   const router = useRouter();
   const [date, setDate] = useState(demoDate);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollLeft = xOf(7 * 60);
+  }, []);
 
   const dayEntries = useMemo(() => {
     const out: Entry[] = [];
@@ -89,21 +122,22 @@ export default function CalendarPage() {
       }
     >
       {/* summary chips */}
-      <div className="mb-5 flex flex-wrap gap-2.5">
+      <div className="mb-5 flex flex-wrap items-center gap-3">
         <Stat value={stats.active} label="people scheduled" />
         <Stat value={stats.blocks} label="time blocks" />
-        <Stat value={stats.high} label="high priority" tone="high" />
+        <Stat value={stats.high} label="high priority" />
       </div>
 
-      <div className="card overflow-hidden">
-        <div className="scroll-quiet overflow-x-auto">
+      <div className="card relative overflow-hidden">
+        <div ref={scrollRef} className="scroll-quiet max-h-[82vh] overflow-auto">
           <div style={{ width: COL + TRACK }} className="relative">
             {/* time header */}
-            <div className="flex h-11 items-stretch border-b border-hairline bg-surface-2">
-              <div style={{ width: COL }} className="sticky left-0 z-20 flex items-center border-r border-hairline bg-surface-2 px-5 text-xs font-medium text-muted">
+            <div className="sticky top-0 z-30 flex h-11 items-stretch border-b border-hairline bg-surface-2">
+              <div style={{ width: COL }} className="sticky left-0 z-40 flex items-center border-r border-hairline bg-surface-2 px-5 text-xs font-medium text-muted shadow-[8px_0_12px_-10px_rgba(27,28,32,0.22)]">
                 Team
               </div>
               <div className="relative" style={{ width: TRACK }}>
+                <OffHours />
                 {hourTicks.map((m) => (
                   <div key={m} style={{ left: xOf(m) }} className="absolute top-0 flex h-full items-center">
                     <span className="tnum -translate-x-1/2 text-[11px] font-medium text-muted">{toHHMM(m)}</span>
@@ -113,39 +147,54 @@ export default function CalendarPage() {
             </div>
 
             {/* rows */}
-            {people.map((p, i) => (
-              <div key={p.id} className={`flex ${i < people.length - 1 ? "border-b border-hairline" : ""}`} style={{ height: ROW }}>
-                <div style={{ width: COL }} className="sticky left-0 z-10 flex items-center gap-3 border-r border-hairline bg-surface px-5">
-                  <Avatar name={p.name} tint={p.tint} />
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-ink">{p.name}</div>
-                    <div className="truncate text-[11px] text-muted">{p.role}</div>
+            {people.map((p, i) => {
+              const { placed, lanes } = laneLayout(forPerson(p.id));
+              const pad = 6;
+              const gap = 6;
+              const rowHeight = ROW; // every row is the same height
+              const blockH = (rowHeight - pad * 2 - (lanes - 1) * gap) / lanes;
+              return (
+                <div
+                  key={p.id}
+                  className={`flex ${i < people.length - 1 ? "border-b border-hairline" : ""}`}
+                  style={{ height: rowHeight }}
+                >
+                  <div
+                    style={{ width: COL }}
+                    className="sticky left-0 z-20 flex items-center gap-3 border-r border-hairline bg-surface px-5 shadow-[8px_0_12px_-10px_rgba(27,28,32,0.22)]"
+                  >
+                    <Avatar name={p.name} tint={p.tint} tip={false} />
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium text-ink">{p.name}</div>
+                      <div className="truncate text-[11px] text-muted">{p.role}</div>
+                    </div>
+                  </div>
+                  <div className="relative" style={{ width: TRACK }}>
+                    <OffHours />
+                    {hourTicks.map((m) => (
+                      <div key={m} style={{ left: xOf(m) }} className="absolute inset-y-0 w-px bg-hairline/70" />
+                    ))}
+                    <NowLine date={date} />
+                    {anchors.map((a) => (
+                      <Anchor key={a.label} label={a.label} start={a.start} dur={a.durationMins} />
+                    ))}
+                    {placed.map(({ e, lane }) => (
+                      <Block key={e.id + p.id} e={e} top={pad + lane * (blockH + gap)} height={blockH} />
+                    ))}
                   </div>
                 </div>
-                <div className="relative" style={{ width: TRACK }}>
-                  {hourTicks.map((m) => (
-                    <div key={m} style={{ left: xOf(m) }} className="absolute inset-y-0 w-px bg-hairline/70" />
-                  ))}
-                  <NowLine date={date} />
-                  {anchors.map((a) => (
-                    <Anchor key={a.label} label={a.label} start={a.start} dur={a.durationMins} />
-                  ))}
-                  {forPerson(p.id).map((e) => (
-                    <Block key={e.id + p.id} e={e} viewer={p.id} />
-                  ))}
-                </div>
-              </div>
-            ))}
-
-            {dayEntries.length === 0 && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="rounded-xl border border-hairline bg-surface/95 px-4 py-2.5 text-sm text-muted shadow-sm">
-                  No plans recorded for this day yet.
-                </div>
-              </div>
-            )}
+              );
+            })}
           </div>
         </div>
+
+        {dayEntries.length === 0 && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="rounded-xl border border-hairline bg-surface/95 px-4 py-2.5 text-sm text-muted shadow-sm">
+              No plans recorded for this day yet.
+            </div>
+          </div>
+        )}
       </div>
 
       <Legend />
@@ -153,12 +202,11 @@ export default function CalendarPage() {
   );
 }
 
-function Stat({ value, label, tone }: { value: number; label: string; tone?: "high" }) {
+function Stat({ value, label }: { value: number; label: string }) {
   return (
-    <div className="flex items-baseline gap-2 rounded-xl border border-hairline bg-surface px-3.5 py-2">
-      <span className={`font-display text-xl ${tone === "high" ? "text-high-ink" : "text-accent"}`}>{value}</span>
-      <span className="text-xs text-muted">{label}</span>
-    </div>
+    <span className="rounded-full border border-hairline bg-surface px-3 py-1 text-xs text-muted">
+      {value} {label}
+    </span>
   );
 }
 
@@ -181,45 +229,52 @@ function Anchor({ label, start, dur }: { label: string; start: string; dur: numb
   return (
     <div
       style={{ left: xOf(toMin(start)), width: dur * PX }}
-      className="absolute inset-y-2 flex items-center justify-center rounded-lg border border-dashed border-hairline-2 bg-surface-2 px-1"
+      className="pointer-events-none absolute inset-y-0 border-x border-dashed border-hairline-2 bg-surface-2/50"
       title={`${label} · ${start}`}
     >
-      <span className="truncate text-[10px] font-medium text-muted">{label}</span>
+      <span className="absolute inset-x-1 top-1 truncate text-[9px] font-medium text-muted">{label}</span>
     </div>
   );
 }
 
-function Block({ e, viewer }: { e: Entry; viewer: string }) {
+function Block({ e, top, height }: { e: Entry; top: number; height: number }) {
   const m = priorityMeta[e.priority as Priority];
   const task = getTask(e.taskId);
   const isMeeting = (e.attendees?.length ?? 0) > 1;
-  const others = (e.attendees ?? []).filter((id) => id !== viewer);
+  const note = e.note?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const showNote = height >= 56 && !!note;
+  const showMeta = height >= 38;
+  const names = (e.attendees ?? []).map((id) => getPerson(id)?.name).filter(Boolean);
+  const tip = [
+    task?.title,
+    note,
+    `${e.start}–${endOf(e)} · ${fmtDuration(e.durationMins)}`,
+    `Place: ${e.place}`,
+    isMeeting ? `Meeting with ${names.join(", ")}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
   return (
     <div
-      style={{ left: xOf(toMin(e.start)), width: Math.max(e.durationMins * PX - 4, 44) }}
-      className={`group absolute inset-y-2 overflow-hidden rounded-lg border ${m.line} ${m.soft} pl-3 pr-2 py-1.5`}
-      title={`${task?.title ?? ""}${e.note ? " · " + e.note : ""} · ${e.start} to ${endOf(e)} · ${e.place}`}
+      style={{ left: xOf(toMin(e.start)), width: Math.max(e.durationMins * PX - 4, 44), top, height }}
+      className={`group absolute overflow-hidden rounded-lg border ${m.line} ${m.soft} px-2.5 py-1.5`}
+      title={tip}
     >
-      <span className={`absolute inset-y-0 left-0 w-1 ${m.bar}`} aria-hidden />
       <div className="flex items-center gap-1.5">
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${m.dot}`} aria-hidden />
         <span className="truncate text-xs font-semibold text-ink">{task?.title}</span>
+        {isMeeting && <Users width={12} height={12} className="ml-auto shrink-0 text-accent" />}
       </div>
-      {e.note && <div className="truncate text-[11px] text-ink-2">{e.note.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()}</div>}
-      <div className="mt-0.5 flex items-center gap-1.5">
-        <span className="tnum text-[10px] text-muted">{e.start} · {fmtDuration(e.durationMins)}</span>
-        <span className="text-[10px] text-muted">·</span>
-        <span className="truncate text-[10px] text-muted">{e.place}</span>
-        {isMeeting && (
-          <span className="ml-auto flex items-center gap-1 text-accent" title="Meeting">
-            <Users width={12} height={12} />
-            {others.slice(0, 2).map((id) => {
-              const p = getPerson(id);
-              return p ? <Avatar key={id} name={p.name} tint={p.tint} size="sm" /> : null;
-            })}
+      {showNote && <div className="truncate text-[11px] text-ink-2">{note}</div>}
+      {showMeta && (
+        <div className="mt-0.5 flex items-center gap-1.5">
+          <span className="tnum text-[10px] text-muted">
+            {e.start} · {fmtDuration(e.durationMins)}
           </span>
-        )}
-      </div>
+          <span className="text-[10px] text-muted">·</span>
+          <span className="truncate text-[10px] text-muted">{e.place}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -239,6 +294,9 @@ function Legend() {
       </span>
       <span className="flex items-center gap-1.5">
         <span className="h-2.5 w-4 rounded border border-dashed border-hairline-2 bg-surface-2" /> Daily anchor
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="h-2.5 w-4 rounded bg-surface-2" /> Outside work hours
       </span>
     </div>
   );

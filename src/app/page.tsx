@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Brand, Check, Clock, PageFrame, Pencil, Plus, PriorityTag, Select, X } from "@/components/ui";
+import { ArrowRight, Brand, Check, Clock, NoteArea, PageFrame, Pencil, Plus, PriorityTag, Select, X } from "@/components/ui";
 import { loadDay, saveDay, useSession } from "@/lib/session";
 import {
   anchors,
@@ -378,8 +378,11 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
 
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-dashed border-hairline-2 bg-surface-2 px-4 py-3 text-xs text-muted">
         <span className="font-medium text-ink-2">Auto-added for everyone:</span>
-        <span className="tnum rounded-full bg-surface px-2 py-0.5">09:00 Stand-up</span>
-        <span className="tnum rounded-full bg-surface px-2 py-0.5">17:30 Evening meeting</span>
+        {anchors.map((a) => (
+          <span key={a.label} className="tnum rounded-full bg-surface px-2 py-0.5">
+            {a.start} {a.label}
+          </span>
+        ))}
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline pt-4">
@@ -405,75 +408,6 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
       </div>
     </div>,
     "Add your blocks for the day.",
-  );
-}
-
-/** A free-form note (rich text). Enter starts a new bulleted line; highlight text to strike it through. */
-function NoteArea({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [tip, setTip] = useState<{ x: number; y: number } | null>(null);
-
-  // set initial HTML once; afterwards the field is uncontrolled so the caret never jumps
-  useEffect(() => {
-    if (ref.current && ref.current.innerHTML !== value) ref.current.innerHTML = value;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // show the tooltip live as the selection changes (no wait for mouse release)
-  useEffect(() => {
-    const onSelect = () => {
-      const el = ref.current;
-      const sel = window.getSelection();
-      if (!el || !sel || sel.rangeCount === 0 || sel.isCollapsed) return setTip(null);
-      const range = sel.getRangeAt(0);
-      if (!el.contains(range.commonAncestorContainer)) return setTip(null);
-      const r = range.getBoundingClientRect();
-      const p = el.getBoundingClientRect();
-      setTip({ x: r.left - p.left + r.width / 2, y: r.top - p.top });
-    };
-    document.addEventListener("selectionchange", onSelect);
-    return () => document.removeEventListener("selectionchange", onSelect);
-  }, []);
-
-  const emit = () => ref.current && onChange(ref.current.innerHTML);
-
-  const toggleStrike = () => {
-    document.execCommand("strikeThrough");
-    emit();
-    window.getSelection()?.collapseToEnd();
-    setTip(null);
-  };
-
-  return (
-    <div className="relative">
-      <div
-        ref={ref}
-        contentEditable
-        suppressContentEditableWarning
-        role="textbox"
-        aria-multiline="true"
-        data-placeholder="Write a note… press Enter for a new line"
-        onInput={emit}
-        className="note-area"
-      />
-      {tip && (
-        <div
-          style={{ left: tip.x, top: tip.y }}
-          className="absolute z-30 -translate-x-1/2 -translate-y-[calc(100%+7px)] rounded-lg bg-ink px-1 py-1 shadow-[0_8px_24px_rgba(27,27,31,0.25)]"
-        >
-          <button
-            onMouseDown={(e) => {
-              e.preventDefault();
-              toggleStrike();
-            }}
-            className="flex h-7 items-center rounded-md px-2.5 text-sm font-semibold text-white line-through transition-colors hover:bg-white/15"
-            title="Strike through"
-          >
-            S
-          </button>
-        </div>
-      )}
-    </div>
   );
 }
 

@@ -1,50 +1,50 @@
 @import "tailwindcss";
 
 /*
-  Cadence — "Porcelain & Cobalt"
-  Soft off-white canvas + near-black ink + one vivid cobalt accent.
+  Cadence — "Fog & Iris"
+  Calm cool light-gray canvas + cool near-black ink + one muted dusty-violet accent.
   Flat only: no gradients. Color carries meaning, never decoration.
 */
 @theme {
-  --color-canvas: #f7f6f3;
+  --color-canvas: #f4f5f6;
   --color-surface: #ffffff;
-  --color-surface-2: #efeee9;
+  --color-surface-2: #ecedf0;
 
-  --color-ink: #1b1b1f;
-  --color-ink-2: #4c4c52;
-  --color-muted: #8a8a91;
-  --color-hairline: #e8e7e2;
-  --color-hairline-2: #d7d6d0;
+  --color-ink: #1b1c20;
+  --color-ink-2: #4b4d55;
+  --color-muted: #888b93;
+  --color-hairline: #e6e7ea;
+  --color-hairline-2: #d5d6da;
 
-  --color-accent: #3d43d6;
-  --color-accent-hover: #2e33b5;
-  --color-accent-soft: #e9e9fb;
+  --color-accent: #5e5598;
+  --color-accent-hover: #4a4279;
+  --color-accent-soft: #edebf6;
 
-  --color-high: #df453b;
-  --color-high-ink: #bc3526;
-  --color-high-soft: #fbe7e3;
-  --color-high-line: #f1cdc5;
+  --color-high: #dc4b3e;
+  --color-high-ink: #b5392e;
+  --color-high-soft: #fbe7e4;
+  --color-high-line: #f0ccc6;
 
   --color-med: #d9870a;
   --color-med-ink: #8e5b07;
-  --color-med-soft: #f7eed9;
-  --color-med-line: #ecd6ac;
+  --color-med-soft: #f6edd9;
+  --color-med-line: #e9d6ac;
 
-  --color-low: #9a9890;
-  --color-low-ink: #6a685f;
-  --color-low-soft: #eeece6;
-  --color-low-line: #dbdad2;
+  --color-low: #8c8f97;
+  --color-low-ink: #61646c;
+  --color-low-soft: #ececef;
+  --color-low-line: #d9dade;
 
-  --color-av1-bg: #e9e9fb;
-  --color-av1-ink: #3d43d6;
-  --color-av2-bg: #f6e6e1;
-  --color-av2-ink: #b2584a;
-  --color-av3-bg: #e6efe2;
-  --color-av3-ink: #4e7a50;
-  --color-av4-bg: #f6ecd8;
-  --color-av4-ink: #95700f;
-  --color-av5-bg: #ece8f3;
-  --color-av5-ink: #6a5b97;
+  --color-av1-bg: #edebf6;
+  --color-av1-ink: #5e5598;
+  --color-av2-bg: #e7ecf3;
+  --color-av2-ink: #45628c;
+  --color-av3-bg: #e4eee9;
+  --color-av3-ink: #3e7a63;
+  --color-av4-bg: #f3e9e1;
+  --color-av4-ink: #9a6a4e;
+  --color-av5-bg: #f4ecd9;
+  --color-av5-ink: #8a6a1f;
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -154,6 +154,11 @@ body {
   color: var(--color-muted);
   pointer-events: none;
 }
+/* paragraph variant: rich text, no bullet gutter */
+.note-plain {
+  padding-left: 0;
+  background-image: none;
+}
 
 /* range slider */
 .slider {
@@ -258,16 +263,13 @@ select:focus-visible,
   border-radius: 8px;
 }
 
-/* quiet scrollbars */
-.scroll-quiet::-webkit-scrollbar {
-  height: 10px;
-  width: 10px;
-}
-.scroll-quiet::-webkit-scrollbar-thumb {
-  background: var(--color-hairline-2);
-  border-radius: 999px;
-  border: 3px solid var(--color-surface);
-}
-.scroll-quiet::-webkit-scrollbar-track {
-  background: transparent;
+/*
+  Thin, custom scrollbars everywhere.
+  Use the STANDARD properties only (Chrome 121+, Edge, Firefox). Defining
+  ::-webkit-scrollbar would suppress these and is ignored by overlay scrollbars,
+  so we deliberately don't use it.
+*/
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c4c6cb transparent;
 }

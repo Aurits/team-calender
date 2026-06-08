@@ -64,17 +64,18 @@ export const fmtTime12 = (hhmm: string) => {
   return `${hr}:${String(m).padStart(2, "0")} ${ap}`;
 };
 
-/** The visible day window on the calendar. */
-export const DAY_START = 8 * 60; // 08:00
-export const DAY_END = 18.5 * 60; // 18:30
+/** The visible day window on the calendar — full 24 hours. */
+export const DAY_START = 0; // 00:00
+export const DAY_END = 24 * 60; // 24:00
 export const hourTicks = Array.from(
-  { length: Math.floor((DAY_END - DAY_START) / 60) + 1 },
+  { length: Math.floor((DAY_END - DAY_START) / 60) },
   (_, i) => DAY_START + i * 60,
 );
 
 /** Fixed daily anchors everyone shares. */
 export const anchors = [
-  { label: "Stand-up", start: "09:00", durationMins: 30 },
+  { label: "Stand-up", start: "08:45", durationMins: 30 },
+  { label: "Lunch", start: "12:00", durationMins: 60 },
   { label: "Evening meeting", start: "17:30", durationMins: 30 },
 ];
 
