@@ -1,0 +1,61 @@
+// Cadence — Postgres schema (Prisma)
+// IDs are kept as text (e.g. "p1", "t1") so seed relationships stay readable.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Person {
+  id           String  @id
+  pin          String  @unique
+  name         String
+  role         String
+  defaultPlace String
+  tint         Int
+  entries      Entry[]
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  level       Int // 1 = initiative, 2 = workstream
+  parentId    String?
+  parent      Task?    @relation("TaskTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Task[]   @relation("TaskTree")
+  title       String
+  description String?
+  priority    String   @default("medium")
+  deadline    String?
+  place       String   @default("")
+  assignees   String[] @default([])
+  position    Int      @default(0)
+  entries     Entry[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([parentId])
+}
+
+model Entry {
+  id           String   @id @default(cuid())
+  personId     String
+  person       Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  note         String?
+  date         String // YYYY-MM-DD
+  start        String // HH:MM (24h)
+  durationMins Int
+  place        String   @default("")
+  priority     String   @default("medium")
+  attendees    String[] @default([])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([date])
+  @@index([personId])
+}

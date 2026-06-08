@@ -85,7 +85,7 @@ export const anchors = [
 ];
 
 export const durationChoices = [15, 30, 45, 60, 90, 120, 180, 240];
-export const placeChoices = ["Main Office", "Izumi", "Sugimoto", "Remote", "Outside"];
+export const placeChoices = ["Main Office", "Izumi", "Sugimoto", "Remote", "Ogasawara Site", "Outside"];
 
 /* ----------------------------- priority meta ---------------------------- */
 

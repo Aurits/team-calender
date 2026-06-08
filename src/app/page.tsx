@@ -12,6 +12,7 @@ import {
   fmtLongDate,
   fmtTime12,
   getPerson,
+  people,
   placeChoices,
   priorityMeta,
   taskOptions,
@@ -36,12 +37,21 @@ export default function Home() {
 
 function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
   const [pin, setPin] = useState("");
+  const [error, setError] = useState(false);
 
   const press = (d: string) => {
     if (pin.length >= 4) return;
     const next = pin + d;
     setPin(next);
-    if (next.length === 4) onSignIn("demo");
+    setError(false);
+    if (next.length === 4) {
+      const person = people.find((p) => p.pin === next);
+      if (person) onSignIn(person.id);
+      else {
+        setError(true);
+        window.setTimeout(() => setPin(""), 600);
+      }
+    }
   };
 
   return (
@@ -53,7 +63,7 @@ function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
       <div className="card w-full max-w-sm p-6 sm:p-7">
         <h1 className="font-display text-2xl text-ink">Plan your day</h1>
         <p className="mt-1.5 text-sm text-muted">
-          Enter a 4-digit PIN. It is remembered on this device.
+          Enter your 4-digit PIN. It is remembered on this device.
         </p>
 
         <div className="mt-5 flex gap-3">
@@ -61,9 +71,11 @@ function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
             <span
               key={i}
               className={`flex h-12 flex-1 items-center justify-center rounded-xl border text-xl font-semibold sm:h-14 ${
-                pin[i]
-                  ? "border-accent bg-accent-soft text-accent-hover"
-                  : "border-hairline-2 bg-surface text-muted"
+                error
+                  ? "border-high-line bg-high-soft text-high-ink"
+                  : pin[i]
+                    ? "border-accent bg-accent-soft text-accent-hover"
+                    : "border-hairline-2 bg-surface text-muted"
               }`}
             >
               {pin[i] ? "•" : ""}
@@ -71,7 +83,11 @@ function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
           ))}
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-2.5">
+        <p className={`mt-3 h-4 text-center text-xs font-medium text-high-ink transition-opacity ${error ? "opacity-100" : "opacity-0"}`}>
+          Incorrect PIN. Try again.
+        </p>
+
+        <div className="mt-2 grid grid-cols-3 gap-2 sm:gap-2.5">
           {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
             <Key key={d} onClick={() => press(d)}>{d}</Key>
           ))}

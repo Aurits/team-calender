@@ -1,30 +1,35 @@
 {
   "demoDate": "2026-06-04",
   "people": [
-    { "id": "p1", "pin": "4821", "name": "Kevin", "role": "Engineer", "defaultPlace": "Main Office", "tint": 1 },
-    { "id": "p2", "pin": "2470", "name": "Martin", "role": "Engineer", "defaultPlace": "Main Office", "tint": 2 },
-    { "id": "p3", "pin": "1009", "name": "Ambrose", "role": "Developer", "defaultPlace": "Izumi", "tint": 3 },
-    { "id": "p4", "pin": "3388", "name": "Andra", "role": "Designer", "defaultPlace": "Main Office", "tint": 4 },
-    { "id": "p5", "pin": "7777", "name": "Inaba", "role": "Manager", "defaultPlace": "Sugimoto", "tint": 5 },
-    { "id": "p6", "pin": "1111", "name": "Sara", "role": "Engineer", "defaultPlace": "Main Office", "tint": 2 },
-    { "id": "p7", "pin": "2222", "name": "Kenji", "role": "Developer", "defaultPlace": "Izumi", "tint": 3 },
-    { "id": "p8", "pin": "3333", "name": "Maria", "role": "Designer", "defaultPlace": "Main Office", "tint": 4 },
-    { "id": "p9", "pin": "4444", "name": "Tom", "role": "Engineer", "defaultPlace": "Sugimoto", "tint": 5 },
-    { "id": "p10", "pin": "5555", "name": "Yuki", "role": "Coordinator", "defaultPlace": "Main Office", "tint": 1 },
-    { "id": "p11", "pin": "6666", "name": "David", "role": "Engineer", "defaultPlace": "Izumi", "tint": 2 },
-    { "id": "demo", "pin": "0000", "name": "Demo", "role": "Guest", "defaultPlace": "Main Office", "tint": 1 }
+    { "id": "p1", "pin": "4821", "name": "Andrew", "role": "Engineer", "defaultPlace": "Main Office", "tint": 1 },
+    { "id": "p2", "pin": "2470", "name": "Matsumoto", "role": "Manager", "defaultPlace": "Sugimoto", "tint": 2 },
+    { "id": "p3", "pin": "1009", "name": "Inaba", "role": "Developer", "defaultPlace": "Izumi", "tint": 3 },
+    { "id": "p4", "pin": "3388", "name": "Nate", "role": "Designer", "defaultPlace": "Main Office", "tint": 4 },
+    { "id": "p5", "pin": "7777", "name": "Prakhar", "role": "Engineer", "defaultPlace": "Remote", "tint": 5 },
+    { "id": "p6", "pin": "1111", "name": "Nishinaga", "role": "Developer", "defaultPlace": "Main Office", "tint": 1 },
+    { "id": "p7", "pin": "2222", "name": "Kevin", "role": "Engineer", "defaultPlace": "Main Office", "tint": 2 },
+    { "id": "p8", "pin": "3333", "name": "Martin", "role": "Analyst", "defaultPlace": "Izumi", "tint": 3 },
+    { "id": "p9", "pin": "4444", "name": "Ambrose", "role": "Developer", "defaultPlace": "Ogasawara Site", "tint": 4 },
+    { "id": "demo", "pin": "0000", "name": "Demo User", "role": "Guest", "defaultPlace": "Main Office", "tint": 1 }
   ],
   "tasks": [
-    { "id": "t1", "level": 1, "parentId": null, "title": "Ogasawara Project", "description": "Field preparation and on-site work for the Ogasawara initiative.", "priority": "high", "deadline": "2026-06-30", "defaultPlace": "Izumi" },
-    { "id": "t11", "level": 2, "parentId": "t1", "title": "Construction Planning", "priority": "high", "defaultPlace": "Izumi" },
-    { "id": "t12", "level": 2, "parentId": "t1", "title": "Documentation", "priority": "medium", "defaultPlace": "Main Office" },
+    { "id": "t1", "level": 1, "parentId": null, "title": "Ogasawara Project", "description": "Build-out of the new Ogasawara site.", "priority": "high", "deadline": "2026-06-30", "defaultPlace": "Ogasawara Site", "assignees": ["p1", "p9", "p5"] },
+    { "id": "t11", "level": 2, "parentId": "t1", "title": "Site Construction", "priority": "high", "defaultPlace": "Ogasawara Site", "assignees": ["p1", "p9"] },
+    { "id": "t12", "level": 2, "parentId": "t1", "title": "Permits & Documentation", "priority": "medium", "defaultPlace": "Izumi", "assignees": ["p3"] },
+    { "id": "t13", "level": 2, "parentId": "t1", "title": "Equipment & Logistics", "priority": "medium", "defaultPlace": "Sugimoto", "assignees": ["p5", "p9"] },
 
-    { "id": "t2", "level": 1, "parentId": null, "title": "June Initiative", "description": "Internal dashboards and data migration for the June rollout.", "priority": "high", "deadline": "2026-06-15", "defaultPlace": "Main Office" },
-    { "id": "t21", "level": 2, "parentId": "t2", "title": "Dashboard Setup", "priority": "medium", "defaultPlace": "Main Office" },
-    { "id": "t22", "level": 2, "parentId": "t2", "title": "Data Migration", "priority": "low", "defaultPlace": "Main Office" },
+    { "id": "t2", "level": 1, "parentId": null, "title": "June Product Launch", "description": "Ship the v1 dashboard and launch comms.", "priority": "high", "deadline": "2026-06-15", "defaultPlace": "Main Office", "assignees": ["p2", "p4", "p6"] },
+    { "id": "t21", "level": 2, "parentId": "t2", "title": "Dashboard Build", "priority": "high", "defaultPlace": "Main Office", "assignees": ["p2", "p6", "p7"] },
+    { "id": "t22", "level": 2, "parentId": "t2", "title": "Data Migration", "priority": "high", "defaultPlace": "Main Office", "assignees": ["p6", "p8"] },
+    { "id": "t23", "level": 2, "parentId": "t2", "title": "Launch Marketing", "priority": "medium", "defaultPlace": "Main Office", "assignees": ["p4", "p8"] },
 
-    { "id": "t3", "level": 1, "parentId": null, "title": "Office Operations", "description": "Day-to-day coordination, reviews, and planning.", "priority": "medium", "defaultPlace": "Main Office" },
-    { "id": "t31", "level": 2, "parentId": "t3", "title": "Team Sync & Review", "priority": "medium", "defaultPlace": "Main Office" }
+    { "id": "t3", "level": 1, "parentId": null, "title": "Office Operations", "description": "Keep the offices and vendors running smoothly.", "priority": "medium", "defaultPlace": "Main Office", "assignees": ["p3", "p7"] },
+    { "id": "t31", "level": 2, "parentId": "t3", "title": "Facilities", "priority": "low", "defaultPlace": "Main Office", "assignees": ["p3"] },
+    { "id": "t32", "level": 2, "parentId": "t3", "title": "Vendor Coordination", "priority": "medium", "defaultPlace": "Main Office", "assignees": ["p3", "p7"] },
+
+    { "id": "t4", "level": 1, "parentId": null, "title": "Customer Success", "description": "Onboarding and ongoing support for accounts.", "priority": "medium", "defaultPlace": "Main Office", "assignees": ["p2", "p8"] },
+    { "id": "t41", "level": 2, "parentId": "t4", "title": "Onboarding", "priority": "medium", "defaultPlace": "Main Office", "assignees": ["p2"] },
+    { "id": "t42", "level": 2, "parentId": "t4", "title": "Support Playbook", "priority": "low", "defaultPlace": "Remote", "assignees": ["p8"] }
   ],
   "entries": [
     { "id": "e1", "personId": "p1", "taskId": "t11", "note": "Draft site layout", "date": "2026-06-04", "start": "10:00", "durationMins": 120, "place": "Izumi", "priority": "high" },
@@ -47,6 +52,6 @@
     { "id": "e11", "personId": "p7", "taskId": "t11", "note": "Foundation check", "date": "2026-06-04", "start": "10:00", "durationMins": 90, "place": "Izumi", "priority": "high" },
     { "id": "e12", "personId": "p8", "taskId": "t12", "note": "Icon set", "date": "2026-06-04", "start": "13:30", "durationMins": 120, "place": "Main Office", "priority": "low" },
     { "id": "e13", "personId": "p9", "taskId": "t22", "note": "Schema review", "date": "2026-06-04", "start": "11:00", "durationMins": 60, "place": "Sugimoto", "priority": "medium" },
-    { "id": "e14", "personId": "p10", "taskId": "t31", "note": "Coordinate vendors", "date": "2026-06-04", "start": "14:00", "durationMins": 90, "place": "Main Office", "priority": "medium" }
+    { "id": "e14", "personId": "p4", "taskId": "t32", "note": "Coordinate vendors", "date": "2026-06-04", "start": "14:00", "durationMins": 90, "place": "Main Office", "priority": "medium" }
   ]
 }

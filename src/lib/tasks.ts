@@ -23,13 +23,13 @@ function seed(): Initiative[] {
     priority: t.priority,
     deadline: t.deadline,
     place: t.defaultPlace ?? "",
-    assignees: [],
+    assignees: t.assignees ?? [],
     children: childrenOf(t.id).map((c) => ({
       id: c.id,
       title: c.title,
       priority: c.priority,
       place: c.defaultPlace ?? t.defaultPlace ?? "",
-      assignees: [],
+      assignees: c.assignees ?? [],
     })),
   }));
 }

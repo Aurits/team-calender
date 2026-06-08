@@ -19,6 +19,7 @@ export interface Task {
   priority: Priority;
   deadline?: string; // ISO date
   defaultPlace?: string;
+  assignees?: string[];
 }
 
 export interface Entry {
