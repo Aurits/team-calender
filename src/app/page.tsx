@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Brand, Check, Clock, NoteArea, PageFrame, Pencil, Plus, PriorityTag, Select, X } from "@/components/ui";
-import { loadDay, saveDay, useSession } from "@/lib/session";
+import { useSession } from "@/lib/session";
+import { fetchDay, saveDayApi, verifyPin } from "@/lib/api";
+import { flattenTasks, taskStore, type TaskRef } from "@/lib/tasks";
 import {
   anchors,
   demoDate,
@@ -12,10 +14,8 @@ import {
   fmtLongDate,
   fmtTime12,
   getPerson,
-  people,
   placeChoices,
   priorityMeta,
-  taskOptions,
   toHHMM,
   toMin,
 } from "@/lib/data";
@@ -38,19 +38,28 @@ export default function Home() {
 function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
+  const [checking, setChecking] = useState(false);
 
   const press = (d: string) => {
-    if (pin.length >= 4) return;
+    if (pin.length >= 4 || checking) return;
     const next = pin + d;
     setPin(next);
     setError(false);
     if (next.length === 4) {
-      const person = people.find((p) => p.pin === next);
-      if (person) onSignIn(person.id);
-      else {
-        setError(true);
-        window.setTimeout(() => setPin(""), 600);
-      }
+      setChecking(true);
+      verifyPin(next)
+        .then((person) => {
+          if (person) onSignIn(person.id);
+          else {
+            setError(true);
+            setPin("");
+          }
+        })
+        .catch(() => {
+          setError(true);
+          setPin("");
+        })
+        .finally(() => setChecking(false));
     }
   };
 
@@ -160,7 +169,6 @@ const toEntries = (personId: string, rows: Row[]): Entry[] =>
       priority: r.priority,
     }));
 
-const taskOpts = taskOptions.map((o) => ({ value: o.id, label: o.label }));
 const placeOpts = placeChoices.map((p) => ({ value: p, label: p }));
 const prioOpts = (["high", "medium", "low"] as const).map((p) => ({
   value: p,
@@ -187,24 +195,50 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
   const [saved, setSaved] = useState<Entry[]>([]);
   const [mode, setMode] = useState<"view" | "edit">("edit");
   const [rows, setRows] = useState<Row[]>([blank()]);
+  const [taskRefs, setTaskRefs] = useState<TaskRef[]>([]);
 
   useEffect(() => {
-    const s = loadDay(personId) ?? [];
-    setSaved(s);
-    if (s.length) {
-      setMode("view");
-      setRows(toRows(s));
-    } else {
-      setMode("edit");
-      setRows([blank()]);
-    }
-    setReady(true);
+    taskStore
+      .load()
+      .then((tree) => setTaskRefs(flattenTasks(tree)))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setReady(false);
+    fetchDay(personId, demoDate)
+      .then((s) => {
+        if (cancelled) return;
+        setSaved(s);
+        if (s.length) {
+          setMode("view");
+          setRows(toRows(s));
+        } else {
+          setMode("edit");
+          setRows([blank()]);
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setSaved([]);
+        setMode("edit");
+        setRows([blank()]);
+      })
+      .finally(() => {
+        if (!cancelled) setReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [personId]);
+
+  const taskOpts = taskRefs.map((t) => ({ value: t.id, label: t.label }));
 
   const update = (id: number, patch: Partial<Row>) =>
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   const selectTask = (id: number, taskId: string) => {
-    const o = taskOptions.find((x) => x.id === taskId);
+    const o = taskRefs.find((x) => x.id === taskId);
     update(id, { taskId, place: o?.place || person.defaultPlace, priority: o?.priority ?? "medium" });
   };
   const filled = rows.filter((r) => r.taskId);
@@ -220,11 +254,11 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
     return ids;
   }, [rows]);
 
-  const save = () => {
+  const save = async () => {
     const es = toEntries(personId, rows);
-    saveDay(personId, es);
     setSaved(es);
     setMode("view");
+    await saveDayApi(personId, demoDate, es).catch((e) => console.error("Couldn't save day", e));
   };
 
   const frame = (children: React.ReactNode, sub: string) => (
@@ -282,7 +316,7 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="truncate text-sm font-medium text-ink">
-                        {taskOptions.find((x) => x.id === it.e.taskId)?.label}
+                        {taskRefs.find((x) => x.id === it.e.taskId)?.label}
                       </span>
                       <PriorityTag priority={it.e.priority} />
                     </div>

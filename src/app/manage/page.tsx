@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AssigneePicker,
@@ -180,9 +180,23 @@ export default function ManagePage() {
   const [query, setQuery] = useState("");
   const [drag, setDrag] = useState<{ id: string; l1?: string } | null>(null);
 
-  useEffect(() => setTree(taskStore.load()), []);
+  const skipSave = useRef(true);
   useEffect(() => {
-    if (tree) taskStore.save(tree);
+    taskStore
+      .load()
+      .then((t) => {
+        skipSave.current = true;
+        setTree(t);
+      })
+      .catch(() => setTree([]));
+  }, []);
+  useEffect(() => {
+    if (tree === null) return;
+    if (skipSave.current) {
+      skipSave.current = false;
+      return;
+    }
+    taskStore.save(tree).catch((e) => console.error("Couldn't save tasks", e));
   }, [tree]);
 
   if (!personId || tree === null) return <div className="min-h-dvh" />;

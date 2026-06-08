@@ -4,24 +4,24 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Avatar, Brand, Chevron, ProfileMenu, Users } from "@/components/ui";
-import { clearPerson, loadDay, useRequirePerson } from "@/lib/session";
+import { clearPerson, useRequirePerson } from "@/lib/session";
 import {
   DAY_END,
   DAY_START,
   anchors,
   demoDate,
   endOf,
-  entries as seed,
   fmtDuration,
   fmtLongDate,
   getPerson,
-  getTask,
   hourTicks,
   people,
   priorityMeta,
   toHHMM,
   toMin,
 } from "@/lib/data";
+import { fetchEntries } from "@/lib/api";
+import { flattenTasks, taskStore } from "@/lib/tasks";
 import type { Entry, Priority } from "@/lib/types";
 
 const PX = 2;
@@ -78,15 +78,29 @@ export default function CalendarPage() {
     el.scrollLeft = Math.max(0, COL + xOf(now) - el.clientWidth / 2);
   }, [personId]);
 
-  const dayEntries = useMemo(() => {
-    const out: Entry[] = [];
-    for (const p of people) {
-      const saved = loadDay(p.id);
-      if (saved) out.push(...saved.filter((e) => e.date === date));
-      else out.push(...seed.filter((e) => e.date === date && e.personId === p.id));
-    }
-    return out;
-  }, [date]);
+  const [dayEntries, setDayEntries] = useState<Entry[]>([]);
+  const [taskTitles, setTaskTitles] = useState<Map<string, string>>(new Map());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    taskStore
+      .load()
+      .then((tree) => {
+        const m = new Map<string, string>();
+        for (const t of flattenTasks(tree)) m.set(t.id, t.title);
+        setTaskTitles(m);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!personId) return;
+    setLoading(true);
+    fetchEntries(date)
+      .then((es) => setDayEntries(es))
+      .catch(() => setDayEntries([]))
+      .finally(() => setLoading(false));
+  }, [date, personId]);
 
   const stats = useMemo(() => {
     const active = people.filter((p) =>
@@ -194,7 +208,13 @@ export default function CalendarPage() {
                       <Anchor key={a.label} label={a.label} start={a.start} dur={a.durationMins} />
                     ))}
                     {placed.map(({ e, lane }) => (
-                      <Block key={e.id + p.id} e={e} top={pad + lane * (blockH + gap)} height={blockH} />
+                      <Block
+                        key={e.id + p.id}
+                        e={e}
+                        top={pad + lane * (blockH + gap)}
+                        height={blockH}
+                        title={taskTitles.get(e.taskId) ?? ""}
+                      />
                     ))}
                   </div>
                 </div>
@@ -203,10 +223,10 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {dayEntries.length === 0 && (
+        {(loading || dayEntries.length === 0) && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="rounded-xl border border-hairline bg-surface/95 px-4 py-2.5 text-sm text-muted shadow-sm">
-              No plans recorded for this day yet.
+              {loading ? "Loading…" : "No plans recorded for this day yet."}
             </div>
           </div>
         )}
@@ -304,16 +324,15 @@ function Anchor({ label, start, dur }: { label: string; start: string; dur: numb
   );
 }
 
-function Block({ e, top, height }: { e: Entry; top: number; height: number }) {
+function Block({ e, top, height, title }: { e: Entry; top: number; height: number; title: string }) {
   const m = priorityMeta[e.priority as Priority];
-  const task = getTask(e.taskId);
   const isMeeting = (e.attendees?.length ?? 0) > 1;
   const note = e.note?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   const showNote = height >= 56 && !!note;
   const showMeta = height >= 38;
   const names = (e.attendees ?? []).map((id) => getPerson(id)?.name).filter(Boolean);
   const tip = [
-    task?.title,
+    title,
     note,
     `${e.start}–${endOf(e)} · ${fmtDuration(e.durationMins)}`,
     `Place: ${e.place}`,
@@ -329,7 +348,7 @@ function Block({ e, top, height }: { e: Entry; top: number; height: number }) {
     >
       <div className="flex items-center gap-1.5">
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${m.dot}`} aria-hidden />
-        <span className="truncate text-xs font-semibold text-ink">{task?.title}</span>
+        <span className="truncate text-xs font-semibold text-ink">{title}</span>
         {isMeeting && <Users width={12} height={12} className="ml-auto shrink-0 text-accent" />}
       </div>
       {showNote && <div className="truncate text-[11px] text-ink-2">{note}</div>}
