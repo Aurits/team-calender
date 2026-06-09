@@ -361,6 +361,15 @@ Key choices and the reason for each:
 | Personal devices               | Each person uses their own phone or laptop, no shared kiosk.   |
 | Manual meeting entry           | Keeps the first version simple. Calendar sync comes later.     |
 
+> **Implementation note (as built).** The app ships with a **swappable backend**
+> (`DATA_BACKEND=postgres|sheets`); both share one `Backend` interface, so the UI is
+> unchanged either way. The Google Sheets path keeps the "one visible Sheet" goal above
+> but reaches it through a small **Apps Script Web App bound to the Sheet** rather than
+> the raw Sheets API — the script runs as the sheet owner, so no service-account keys or
+> OAuth credentials live in the app (the server just POSTs to one URL with a shared
+> secret). Postgres remains available for fast local development. See the project
+> `README.md` and `docs/sheets-setup.md` for setup.
+
 ---
 
 ## 11. Scope for the Alpha

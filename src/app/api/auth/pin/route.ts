@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getBackend } from "@/lib/server/backend";
 
 export const dynamic = "force-dynamic";
 
@@ -9,10 +9,8 @@ export async function POST(req: Request) {
   if (typeof pin !== "string" || pin.length === 0) {
     return NextResponse.json({ error: "Missing PIN" }, { status: 400 });
   }
-  const person = await prisma.person.findUnique({
-    where: { pin },
-    select: { id: true, name: true, role: true, defaultPlace: true, tint: true },
-  });
+  const backend = await getBackend();
+  const person = await backend.verifyPin(pin);
   if (!person) return NextResponse.json({ error: "Incorrect PIN" }, { status: 401 });
   return NextResponse.json(person);
 }

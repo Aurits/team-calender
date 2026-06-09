@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { toEntry } from "@/lib/serialize";
+import { getBackend } from "@/lib/server/backend";
 import type { Entry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -10,11 +9,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ personId
   const { personId } = await params;
   const date = new URL(req.url).searchParams.get("date");
   if (!date) return NextResponse.json({ error: "Missing date" }, { status: 400 });
-  const entries = await prisma.entry.findMany({
-    where: { personId, date },
-    orderBy: { start: "asc" },
-  });
-  return NextResponse.json(entries.map(toEntry));
+  const backend = await getBackend();
+  return NextResponse.json(await backend.getDay(personId, date));
 }
 
 // PUT /api/days/:personId  { date, entries } — replace that person's entries for the date.
@@ -24,23 +20,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ personId
   const body = (await req.json()) as { date: string; entries: Entry[] };
   const { date, entries } = body;
   if (!date) return NextResponse.json({ error: "Missing date" }, { status: 400 });
-
-  await prisma.$transaction([
-    prisma.entry.deleteMany({ where: { personId, date } }),
-    prisma.entry.createMany({
-      data: entries.map((e) => ({
-        personId,
-        taskId: e.taskId,
-        note: e.note ?? null,
-        date,
-        start: e.start,
-        durationMins: e.durationMins,
-        place: e.place,
-        priority: e.priority,
-        attendees: e.attendees ?? [],
-      })),
-    }),
-  ]);
-
+  const backend = await getBackend();
+  await backend.saveDay(personId, date, entries ?? []);
   return NextResponse.json({ ok: true });
 }

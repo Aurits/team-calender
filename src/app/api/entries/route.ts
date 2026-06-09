@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { toEntry } from "@/lib/serialize";
+import { getBackend } from "@/lib/server/backend";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +7,6 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const date = new URL(req.url).searchParams.get("date");
   if (!date) return NextResponse.json({ error: "Missing date" }, { status: 400 });
-  const entries = await prisma.entry.findMany({ where: { date }, orderBy: { start: "asc" } });
-  return NextResponse.json(entries.map(toEntry));
+  const backend = await getBackend();
+  return NextResponse.json(await backend.getEntries(date));
 }
