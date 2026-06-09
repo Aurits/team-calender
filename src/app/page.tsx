@@ -158,6 +158,10 @@ const toRows = (es: Entry[]): Row[] =>
     place: e.place,
     priority: e.priority,
   }));
+// TODO: Capture has no attendee picker, so saving a day rewrites the person's
+// blocks without `attendees`. If they own a meeting (a block with >1 attendee),
+// re-saving drops its attendees on both backends. Add an attendee picker here (or
+// preserve attendees from the previously-saved entry) so meetings survive a re-save.
 const toEntries = (personId: string, rows: Row[]): Entry[] =>
   rows
     .filter((r) => r.taskId)
