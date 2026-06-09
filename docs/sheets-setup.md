@@ -63,11 +63,19 @@ Set `DATA_BACKEND="postgres"` (or remove it) and keep `DATABASE_URL` set. No cod
 ## Overview tab (daily snapshot)
 
 The leftmost **Overview** tab (it reuses the spreadsheet's default `Sheet1`) is a
-clean, human-readable snapshot of **today** — names and task titles, no `p2`/`t1`
-ids: a hero banner, live stat chips (people / blocks / high-priority / meetings),
-today's schedule (time, person, task, place, color-coded priority, details), and a
-"where people are today" block. Rich-text notes are de-HTML'd here (so `<strike>…`
-becomes clean text, and a fully struck note renders as a real strikethrough cell).
+clean, human-readable **visual dashboard** of **today** — names and task titles, no
+`p2`/`t1` ids. It includes:
+
+- a hero banner + live stat chips (people / blocks / high-priority / meetings);
+- an **At a glance** band with two **charts** — a *Blocks by priority* donut
+  (red/amber/grey) and an *Hours by person* column chart;
+- **in-cell bar shapes** (block-character bars) for *Workload by person* and
+  *By priority*, color-coded to match;
+- today's schedule (time, person, task, place, color-coded priority, details);
+- a *Where people are today* block.
+
+Rich-text notes are de-HTML'd here (so `<strike>…` becomes clean text, and a fully
+struck note renders as a real strikethrough cell).
 
 It's **presentation only** — the app never reads it — and it's **rebuilt after every
 write** (`saveDay`, `saveTasks`) plus on `setupAndSeed`. "Today" follows the Apps

@@ -585,10 +585,43 @@ function rebuildOverview_() {
     return (e.attendees || []).length > 1;
   }).length;
 
+  // Aggregations for the visuals.
+  var minsByPerson = {};
+  entries.forEach(function (e) {
+    var who = nm(e.personId);
+    minsByPerson[who] = (minsByPerson[who] || 0) + (Number(e.durationMins) || 0);
+  });
+  var personAgg = Object.keys(minsByPerson)
+    .map(function (name) {
+      return { name: name, hours: Math.round((minsByPerson[name] / 60) * 10) / 10 };
+    })
+    .sort(function (a, b) {
+      return b.hours - a.hours;
+    });
+  var prioAgg = ["high", "medium", "low"].map(function (key) {
+    return {
+      key: key,
+      label: cap_(key),
+      count: entries.filter(function (e) {
+        return e.priority === key;
+      }).length,
+    };
+  });
+  var maxPersonHours = personAgg.reduce(function (m, p) { return Math.max(m, p.hours); }, 0) || 1;
+  var maxPrio = prioAgg.reduce(function (m, p) { return Math.max(m, p.count); }, 0) || 1;
+  function bar_(value, max, width) {
+    var n = value <= 0 ? 0 : Math.max(1, Math.round((value / max) * width));
+    var s = "";
+    for (var i = 0; i < n; i++) s += "█";
+    return s;
+  }
+
   var rows = [];
   var merges = [];
   var prio = {};
   var struck = [];
+  var sectionRows = [];
+  var subHeadRows = [];
   var entryFirst = 0, entryLast = 0;
   function push(a) {
     rows.push(a);
@@ -610,7 +643,32 @@ function rebuildOverview_() {
     "", "", "", "", "",
   ]); full(rStat);
   push(["", "", "", "", "", ""]);
-  var rSec1 = push(["Today’s schedule", "", "", "", "", ""]); full(rSec1);
+
+  // ----- visual dashboard band (only when there's data) -----
+  var chartBandStart = 0, personHeaderRow = 0, personCount = 0, prioHeaderRow = 0;
+  var personBarRows = [], prioBarRows = [];
+  if (entries.length) {
+    var rGlance = push(["At a glance", "", "", "", "", ""]); full(rGlance); sectionRows.push(rGlance);
+    chartBandStart = rows.length + 1;
+    for (var bb = 0; bb < 13; bb++) push(["", "", "", "", "", ""]); // reserved for the embedded charts
+
+    var rW = push(["Workload by person", "", "", "", "", ""]); full(rW); sectionRows.push(rW);
+    personHeaderRow = push(["Person", "Hours", "Load", "", "", ""]); subHeadRows.push(personHeaderRow);
+    personAgg.forEach(function (p) {
+      personBarRows.push(push([p.name, p.hours, bar_(p.hours, maxPersonHours, 22), "", "", ""]));
+    });
+    personCount = personAgg.length;
+
+    push(["", "", "", "", "", ""]);
+    var rP = push(["By priority", "", "", "", "", ""]); full(rP); sectionRows.push(rP);
+    prioHeaderRow = push(["Priority", "Blocks", "Share", "", "", ""]); subHeadRows.push(prioHeaderRow);
+    prioAgg.forEach(function (p) {
+      prioBarRows.push({ row: push([p.label, p.count, bar_(p.count, maxPrio, 22), "", "", ""]), key: p.key });
+    });
+    push(["", "", "", "", "", ""]);
+  }
+
+  var rSec1 = push(["Today’s schedule", "", "", "", "", ""]); full(rSec1); sectionRows.push(rSec1);
   var rHead = push(["Time", "Person", "Task", "Place", "Priority", "Details"]);
 
   if (!entries.length) {
@@ -638,7 +696,7 @@ function rebuildOverview_() {
   }
 
   push(["", "", "", "", "", ""]);
-  var rSec2 = push(["Where people are today", "", "", "", "", ""]); full(rSec2);
+  var rSec2 = push(["Where people are today", "", "", "", "", ""]); full(rSec2); sectionRows.push(rSec2);
   var byPlace = {};
   entries.forEach(function (e) {
     var p = e.place || "—";
@@ -678,7 +736,7 @@ function rebuildOverview_() {
   sh.getRange(rStat, 1, 1, 6).setFontSize(11).setHorizontalAlignment("center");
   sh.setRowHeight(rStat, 28);
 
-  [rSec1, rSec2].forEach(function (r) {
+  sectionRows.forEach(function (r) {
     sh.getRange(r, 1, 1, 6).setFontFamily(FONT_HEAD).setFontWeight("bold").setFontSize(12);
     sh.setRowHeight(r, 30);
   });
@@ -709,6 +767,58 @@ function rebuildOverview_() {
     sh.getRange(r, 1).setFontWeight("bold");
     sh.getRange(r, 2).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
   });
+
+  // Mini-table headers + in-cell bar shapes for the visual band.
+  subHeadRows.forEach(function (r) {
+    sh.getRange(r, 1, 1, 3).setFontFamily(FONT_HEAD).setFontWeight("bold").setFontSize(10).setFontColor("#5B6470");
+    sh.getRange(r, 2).setHorizontalAlignment("center");
+  });
+  personBarRows.forEach(function (r) {
+    sh.getRange(r, 2).setFontFamily(FONT_MONO).setHorizontalAlignment("center").setNumberFormat('0.0"h"');
+    sh.getRange(r, 3).setFontFamily(FONT_MONO).setFontColor("#6366F1"); // accent bar
+  });
+  prioBarRows.forEach(function (x) {
+    var col = PRIO[x.key] || { fg: INK };
+    sh.getRange(x.row, 1).setFontColor(col.fg).setFontWeight("bold");
+    sh.getRange(x.row, 2).setFontFamily(FONT_MONO).setHorizontalAlignment("center").setFontWeight("bold");
+    sh.getRange(x.row, 3).setFontFamily(FONT_MONO).setFontColor(col.fg); // priority-colored bar
+  });
+
+  // Embedded charts in the reserved band (rebuilt each time, so clear old ones first).
+  sh.getCharts().forEach(function (c) {
+    sh.removeChart(c);
+  });
+  if (chartBandStart && entries.length) {
+    sh.insertChart(
+      sh.newChart()
+        .setChartType(Charts.ChartType.PIE)
+        .addRange(sh.getRange(prioHeaderRow, 1, 4, 2))
+        .setPosition(chartBandStart, 1, 6, 2)
+        .setOption("title", "Blocks by priority")
+        .setOption("titleTextStyle", { fontName: FONT_HEAD, fontSize: 13, bold: true })
+        .setOption("pieHole", 0.55)
+        .setOption("width", 470)
+        .setOption("height", 250)
+        .setOption("legend", { position: "right", textStyle: { fontName: FONT_BODY } })
+        .setOption("colors", [PRIO.high.fg, PRIO.medium.fg, PRIO.low.fg])
+        .build(),
+    );
+    sh.insertChart(
+      sh.newChart()
+        .setChartType(Charts.ChartType.COLUMN)
+        .addRange(sh.getRange(personHeaderRow, 1, personCount + 1, 2))
+        .setPosition(chartBandStart, 4, 6, 2)
+        .setOption("title", "Hours by person")
+        .setOption("titleTextStyle", { fontName: FONT_HEAD, fontSize: 13, bold: true })
+        .setOption("width", 540)
+        .setOption("height", 250)
+        .setOption("legend", { position: "none" })
+        .setOption("colors", ["#6366F1"])
+        .setOption("hAxis", { textStyle: { fontName: FONT_BODY, fontSize: 9 }, slantedText: true, slantedTextAngle: 30 })
+        .setOption("vAxis", { textStyle: { fontName: FONT_BODY, fontSize: 9 }, format: "0.#" })
+        .build(),
+    );
+  }
 
   sh.setFrozenRows(0);
 }
