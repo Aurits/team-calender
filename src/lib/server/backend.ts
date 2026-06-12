@@ -19,6 +19,7 @@ export interface Backend {
   readonly name: "postgres" | "sheets";
   getPeople(): Promise<PersonPublic[]>;
   verifyPin(pin: string): Promise<PersonPublic | null>;
+  updatePin(personId: string, newPin: string): Promise<void>;
   getTasks(): Promise<Initiative[]>;
   saveTasks(tree: Initiative[]): Promise<void>;
   getEntries(date: string): Promise<Entry[]>;

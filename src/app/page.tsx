@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Brand, Check, Clock, LoadingScreen, NoteArea, PageFrame, Pencil, Plus, PriorityTag, Select, Spinner, X } from "@/components/ui";
+import { ArrowRight, Brand, Check, Clock, LoadingScreen, NoteArea, PageFrame, Pencil, Plus, PriorityTag, Select, Spinner, X, ChangePinModal } from "@/components/ui";
 import { useSession } from "@/lib/session";
 import { fetchDay, saveDayApi, verifyPin } from "@/lib/api";
 import { usePeople } from "@/lib/people";
@@ -23,19 +23,20 @@ import type { Entry, Priority } from "@/lib/types";
 
 export default function Home() {
   const { personId, setPersonId } = useSession();
+  const [justSignedInPin, setJustSignedInPin] = useState("");
 
   if (personId === undefined) {
     return <LoadingScreen />; // first paint, before localStorage read
   }
   if (personId === null) {
-    return <SignIn onSignIn={setPersonId} />;
+    return <SignIn onSignIn={(id, pin) => { setPersonId(id); setJustSignedInPin(pin); }} />;
   }
-  return <Today key={personId} personId={personId} onSignOut={() => setPersonId(null)} />;
+  return <Today key={personId} personId={personId} onSignOut={() => setPersonId(null)} justSignedInPin={justSignedInPin} onDismissPinPrompt={() => setJustSignedInPin("")} />;
 }
 
 /* =============================== Sign in ================================ */
 
-function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
+function SignIn({ onSignIn }: { onSignIn: (id: string, pin: string) => void }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -49,7 +50,7 @@ function SignIn({ onSignIn }: { onSignIn: (id: string) => void }) {
       setChecking(true);
       verifyPin(next)
         .then((person) => {
-          if (person) onSignIn(person.id);
+          if (person) onSignIn(person.id, next);
           else {
             setError(true);
             setPin("");
@@ -197,7 +198,7 @@ const timeOpts = (() => {
   return out;
 })();
 
-function Today({ personId, onSignOut }: { personId: string; onSignOut: () => void }) {
+function Today({ personId, onSignOut, justSignedInPin, onDismissPinPrompt }: { personId: string; onSignOut: () => void; justSignedInPin?: string; onDismissPinPrompt?: () => void }) {
   const { getPerson } = usePeople();
   const person = getPerson(personId);
   const [ready, setReady] = useState(false);
@@ -205,6 +206,19 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
   const [mode, setMode] = useState<"view" | "edit">("edit");
   const [rows, setRows] = useState<Row[]>([blank()]);
   const [taskRefs, setTaskRefs] = useState<TaskRef[]>([]);
+  const [showChangePin, setShowChangePin] = useState(false);
+
+  useEffect(() => {
+    if (justSignedInPin && localStorage.getItem("pinPromptDismissed") !== "true") {
+      setShowChangePin(true);
+    }
+  }, [justSignedInPin]);
+
+  useEffect(() => {
+    const h = () => setShowChangePin(true);
+    window.addEventListener("open-change-pin", h);
+    return () => window.removeEventListener("open-change-pin", h);
+  }, []);
 
   useEffect(() => {
     taskStore
@@ -285,6 +299,7 @@ function Today({ personId, onSignOut }: { personId: string; onSignOut: () => voi
       onSignOut={onSignOut}
     >
       {children}
+      <ChangePinModal isOpen={showChangePin} onClose={() => { setShowChangePin(false); onDismissPinPrompt?.(); localStorage.setItem("pinPromptDismissed", "true"); }} initialOldPin={justSignedInPin} />
     </PageFrame>
   );
 

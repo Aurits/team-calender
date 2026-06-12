@@ -44,6 +44,10 @@ export const prismaBackend: Backend = {
     return prisma.person.findUnique({ where: { pin }, select: PUBLIC });
   },
 
+  async updatePin(personId: string, newPin: string): Promise<void> {
+    await prisma.person.update({ where: { id: personId }, data: { pin: newPin } });
+  },
+
   async getTasks(): Promise<Initiative[]> {
     const tasks = (await prisma.task.findMany({ orderBy: { position: "asc" } })) as DbTask[];
     return buildTree(tasks.map(toFlat));

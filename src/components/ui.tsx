@@ -443,6 +443,18 @@ export function ProfileMenu({
           </div>
           <div className="my-1.5 h-px bg-hairline" />
           <button
+            onClick={() => {
+              setOpen(false);
+              if (window.dispatchEvent) {
+                window.dispatchEvent(new CustomEvent("open-change-pin"));
+              }
+            }}
+            className="w-full rounded-lg px-2.5 py-2 text-left text-sm text-ink transition-colors hover:bg-surface-2"
+          >
+            Change PIN
+          </button>
+          <div className="my-1.5 h-px bg-hairline" />
+          <button
             onClick={onSignOut}
             className="w-full rounded-lg px-2.5 py-2 text-left text-sm text-ink transition-colors hover:bg-surface-2"
           >
@@ -450,6 +462,103 @@ export function ProfileMenu({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ----------------------------- ChangePinModal -------------------------- */
+
+export function ChangePinModal({
+  isOpen,
+  onClose,
+  initialOldPin = "",
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  initialOldPin?: string;
+}) {
+  const [oldPin, setOldPin] = useState(initialOldPin);
+  const [newPin, setNewPin] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setOldPin(initialOldPin);
+      setNewPin("");
+      setError("");
+    }
+  }, [isOpen, initialOldPin]);
+
+  if (!isOpen) return null;
+
+  const handleSave = async () => {
+    if (oldPin.length !== 4 || newPin.length !== 4) {
+      setError("PIN must be exactly 4 digits");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      // use absolute path or alias for changePinApi
+      const { changePinApi } = await import("@/lib/api");
+      await changePinApi(oldPin, newPin);
+      onClose();
+    } catch (e: any) {
+      setError(e.message || "Failed to update PIN");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/20 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
+        <h2 className="font-display text-xl text-ink">Change your PIN</h2>
+        <p className="mt-2 text-sm text-muted">Pick a 4-digit PIN you can easily remember.</p>
+
+        <div className="mt-6 flex flex-col gap-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">Current PIN</label>
+            <input
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              value={oldPin}
+              onChange={(e) => setOldPin(e.target.value.replace(/\D/g, ""))}
+              placeholder="0000"
+              className="field text-lg font-medium"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">New PIN</label>
+            <input
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              value={newPin}
+              onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
+              placeholder="1234"
+              className="field text-lg font-medium"
+            />
+          </div>
+        </div>
+
+        {error && <p className="mt-4 text-sm font-medium text-high-ink">{error}</p>}
+
+        <div className="mt-8 flex items-center justify-end gap-3">
+          <button onClick={onClose} className="btn btn-ghost">Cancel</button>
+          <button
+            onClick={handleSave}
+            disabled={saving || oldPin.length !== 4 || newPin.length !== 4}
+            className="btn btn-primary"
+          >
+            {saving ? "Saving..." : "Save PIN"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

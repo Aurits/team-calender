@@ -43,3 +43,16 @@ export async function verifyPin(pin: string): Promise<PersonProfile | null> {
   if (!r.ok) throw new Error("Sign-in failed");
   return r.json();
 }
+
+/** Change the user's PIN using their old PIN. */
+export async function changePinApi(oldPin: string, newPin: string): Promise<void> {
+  const r = await fetch("/api/auth/pin/change", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ oldPin, newPin }),
+  });
+  if (!r.ok) {
+    const data = await r.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to change PIN");
+  }
+}

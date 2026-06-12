@@ -78,6 +78,7 @@ function getSecret_() {
 var ACTIONS = {
   getPeople: actionGetPeople_,
   verifyPin: actionVerifyPin_,
+  updatePin: actionUpdatePin_,
   getTasks: actionGetTasks_,
   saveTasks: actionSaveTasks_,
   getEntries: actionGetEntries_,
@@ -130,6 +131,29 @@ function actionVerifyPin_(body) {
     if (String(rows[i].pin) === pin) return toPersonPublic_(rows[i]);
   }
   return null;
+}
+
+function actionUpdatePin_(body) {
+  var personId = String(body.personId);
+  var newPin = String(body.newPin);
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var rows = readObjects_(PEOPLE);
+    var found = false;
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i].id) === personId) {
+        rows[i].pin = newPin;
+        found = true;
+        break;
+      }
+    }
+    if (!found) return { error: "Person not found" };
+    writeObjects_(PEOPLE, PEOPLE_COLS, rows);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true };
 }
 
 function actionGetTasks_() {
@@ -855,15 +879,15 @@ function setupAndSeed() {
 
 var SEED_PEOPLE = [
   { id: "demo", pin: "0000", name: "Demo User", role: "Guest", defaultPlace: "Main Office", tint: 1 },
-  { id: "p1", pin: "4821", name: "Andrew", role: "Engineer", defaultPlace: "Main Office", tint: 1 },
-  { id: "p2", pin: "2470", name: "Matsumoto", role: "Manager", defaultPlace: "Sugimoto", tint: 2 },
-  { id: "p3", pin: "1009", name: "Inaba", role: "Manager", defaultPlace: "Izumi", tint: 3 },
-  { id: "p4", pin: "3388", name: "Nate", role: "Manager", defaultPlace: "Main Office", tint: 4 },
-  { id: "p5", pin: "7777", name: "Prakhar", role: "Manager", defaultPlace: "Remote", tint: 5 },
-  { id: "p6", pin: "1111", name: "Nishinaga", role: "Manager", defaultPlace: "Main Office", tint: 1 },
-  { id: "p7", pin: "2222", name: "Kevin", role: "Engineer", defaultPlace: "Main Office", tint: 2 },
-  { id: "p8", pin: "3333", name: "Martin", role: "Engineer", defaultPlace: "Izumi", tint: 3 },
-  { id: "p9", pin: "4444", name: "Ambrose", role: "Engineer", defaultPlace: "Ogasawara Site", tint: 4 },
+  { id: "p1", pin: "1111", name: "Andrew", role: "Engineer", defaultPlace: "Main Office", tint: 1 },
+  { id: "p2", pin: "2222", name: "Matsumoto", role: "Manager", defaultPlace: "Sugimoto", tint: 2 },
+  { id: "p3", pin: "3333", name: "Inaba", role: "Manager", defaultPlace: "Izumi", tint: 3 },
+  { id: "p4", pin: "4444", name: "Nate", role: "Manager", defaultPlace: "Main Office", tint: 4 },
+  { id: "p5", pin: "5555", name: "Prakhar", role: "Manager", defaultPlace: "Remote", tint: 5 },
+  { id: "p6", pin: "6666", name: "Nishinaga", role: "Manager", defaultPlace: "Main Office", tint: 1 },
+  { id: "p7", pin: "7777", name: "Kevin", role: "Engineer", defaultPlace: "Main Office", tint: 2 },
+  { id: "p8", pin: "8888", name: "Martin", role: "Engineer", defaultPlace: "Izumi", tint: 3 },
+  { id: "p9", pin: "9999", name: "Ambrose", role: "Engineer", defaultPlace: "Ogasawara Site", tint: 4 },
 ];
 
 var SEED_TASKS = [

@@ -40,6 +40,10 @@ export const sheetsBackend: Backend = {
     return call<PersonPublic | null>("verifyPin", { pin });
   },
 
+  async updatePin(personId: string, newPin: string): Promise<void> {
+    await call("updatePin", { personId, newPin });
+  },
+
   async getTasks(): Promise<Initiative[]> {
     const flat = await call<FlatTask[]>("getTasks");
     return buildTree(flat);
