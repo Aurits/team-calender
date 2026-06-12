@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Brand, Check, Clock, LoadingScreen, NoteArea, PageFrame, Pencil, Plus, PriorityTag, Select, Spinner, X, ChangePinModal } from "@/components/ui";
 import { useSession } from "@/lib/session";
-import { fetchDay, saveDayApi, verifyPin } from "@/lib/api";
+import { fetchDay, fetchNote, saveDayApi, saveNoteApi, verifyPin } from "@/lib/api";
 import { usePeople } from "@/lib/people";
 import { flattenTasks, taskStore, type TaskRef } from "@/lib/tasks";
 import {
@@ -207,6 +207,32 @@ function Today({ personId, onSignOut, justSignedInPin, onDismissPinPrompt }: { p
   const [rows, setRows] = useState<Row[]>([blank()]);
   const [taskRefs, setTaskRefs] = useState<TaskRef[]>([]);
   const [showChangePin, setShowChangePin] = useState(false);
+  const [noteContent, setNoteContent] = useState("");
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [noteSaved, setNoteSaved] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Fetch today's note
+  useEffect(() => {
+    fetchNote(personId, demoDate).then(setNoteContent).catch(() => {});
+  }, [personId]);
+
+  // Auto-save note with debounce
+  const handleNoteChange = useCallback(
+    (v: string) => {
+      setNoteContent(v);
+      setNoteSaved(false);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => {
+        setNoteSaving(true);
+        saveNoteApi(personId, demoDate, v)
+          .then(() => { setNoteSaved(true); setTimeout(() => setNoteSaved(false), 2000); })
+          .catch(() => {})
+          .finally(() => setNoteSaving(false));
+      }, 800);
+    },
+    [personId],
+  );
 
   useEffect(() => {
     if (justSignedInPin && localStorage.getItem("pinPromptDismissed") !== "true") {
@@ -365,15 +391,38 @@ function Today({ personId, onSignOut, justSignedInPin, onDismissPinPrompt }: { p
           </ul>
         </div>
 
-        <div className="card self-start p-6">
-          <h2 className="font-display text-xl text-ink">All set for today.</h2>
-          <p className="mt-2 text-sm text-muted">
-            Your plan is shared with the team. See how your day fits alongside everyone else.
-          </p>
-          <Link href="/calendar" className="btn btn-primary mt-5 w-full">
-            See the team calendar
-            <ArrowRight width={16} height={16} />
-          </Link>
+        <div className="flex flex-col gap-5 self-start">
+          <div className="card p-6">
+            <h2 className="font-display text-xl text-ink">All set for today.</h2>
+            <p className="mt-2 text-sm text-muted">
+              Your plan is shared with the team. See how your day fits alongside everyone else.
+            </p>
+            <Link href="/calendar" className="btn btn-primary mt-5 w-full">
+              See the team calendar
+              <ArrowRight width={16} height={16} />
+            </Link>
+          </div>
+
+          <div className="sticky-note overflow-visible p-0">
+            <div className="flex items-center justify-between px-5 pb-2 pt-5">
+              <span className="overline flex items-center gap-2">
+                <span className="text-base">📝</span> Notes & Feedback
+              </span>
+              <span className={`text-[11px] font-medium transition-opacity duration-300 ${
+                noteSaving ? "text-muted opacity-100" : noteSaved ? "text-accent opacity-100" : "opacity-0"
+              }`}>
+                {noteSaving ? "Saving…" : "✓ Saved"}
+              </span>
+            </div>
+            <div className="sticky-lines px-5 pb-5 pt-1" style={{ minHeight: 120 }}>
+              <NoteArea
+                value={noteContent}
+                onChange={handleNoteChange}
+                bullets={false}
+                placeholder="Jot down thoughts, blockers, or feedback…"
+              />
+            </div>
+          </div>
         </div>
       </div>,
       "Here's your plan for today.",

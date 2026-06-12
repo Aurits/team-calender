@@ -142,6 +142,74 @@ body {
   box-shadow: 0 1px 2px rgba(27, 26, 22, 0.04);
 }
 
+/* ---- sticky note (iris-tinted paper — matches the Fog & Iris palette) ---- */
+.sticky-note {
+  --sticky-bg: #f0eef8;
+  --sticky-bg-2: #e8e5f4;
+  --sticky-ink: var(--color-ink);
+  --sticky-muted: var(--color-muted);
+  --sticky-line: #ddd9ed;
+  --sticky-tape: rgba(94, 85, 152, 0.13);
+  position: relative;
+  background: linear-gradient(180deg, var(--sticky-bg-2) 0%, var(--sticky-bg) 60px, var(--sticky-bg) 100%);
+  border: 1px solid rgba(94, 85, 152, 0.12);
+  border-radius: 4px 4px 14px 14px;
+  box-shadow:
+    0 2px 8px rgba(94, 85, 152, 0.08),
+    0 6px 20px rgba(94, 85, 152, 0.04);
+  color: var(--sticky-ink);
+  overflow: visible;
+}
+/* Translucent tape strip across the top */
+.sticky-note::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1.2deg);
+  width: 90px;
+  height: 24px;
+  background: var(--sticky-tape);
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(94, 85, 152, 0.06);
+  z-index: 1;
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+}
+/* Lined-paper effect inside the writing area */
+.sticky-note .sticky-lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 23px,
+    var(--sticky-line) 23px,
+    var(--sticky-line) 24px
+  );
+  background-position: 0 0;
+}
+/* NoteArea overrides inside the sticky */
+.sticky-note .note-area,
+.sticky-note .note-plain {
+  color: var(--sticky-ink);
+  background-image: none;
+}
+.sticky-note .note-area:empty::before {
+  color: var(--sticky-muted);
+}
+
+:root.dark .sticky-note {
+  --sticky-bg: #252339;
+  --sticky-bg-2: #2d2a42;
+  --sticky-ink: var(--color-ink);
+  --sticky-muted: var(--color-muted);
+  --sticky-line: #33304d;
+  --sticky-tape: rgba(139, 129, 214, 0.18);
+  border-color: rgba(139, 129, 214, 0.12);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.20),
+    0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
 .field {
   width: 100%;
   border: 1px solid var(--color-hairline-2);

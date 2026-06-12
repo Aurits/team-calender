@@ -17,10 +17,12 @@
 var PEOPLE = "People";
 var TASKS = "Tasks";
 var ENTRIES = "Entries";
+var NOTES = "Notes";
 
 var PEOPLE_COLS = ["id", "pin", "name", "role", "defaultPlace", "tint"];
 var TASK_COLS = ["id", "level", "parentId", "title", "description", "priority", "deadline", "place", "assignees", "position"];
 var ENTRY_COLS = ["id", "personId", "taskId", "note", "date", "start", "durationMins", "place", "priority", "attendees"];
+var NOTE_COLS = ["personId", "date", "content"];
 
 // 1-based column indices that must stay plain text (so Sheets never reformats dates/times).
 var TASK_TEXT_COLS = [7]; // deadline
@@ -39,6 +41,8 @@ var ACTIONS = {
   getEntries: actionGetEntries_,
   getDay: actionGetDay_,
   saveDay: actionSaveDay_,
+  getNote: actionGetNote_,
+  saveNote: actionSaveNote_,
 };
 
 function doPost(e) {
@@ -136,11 +140,49 @@ function actionGetDay_(body) {
   var personId = String(body.personId);
   var date = String(body.date);
   return readObjects_(ENTRIES)
-    .map(toEntryApi_)
     .filter(function (e) {
-      return e.personId === personId && e.date === date;
+      return String(e.personId) === personId && String(e.date) === date;
     })
+    .map(toEntryApi_)
     .sort(sortByStart_);
+}
+
+function actionGetNote_(body) {
+  var personId = String(body.personId);
+  var date = String(body.date);
+  var rows = readObjects_(NOTES);
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i].personId) === personId && String(rows[i].date) === date) {
+      return { content: String(rows[i].content || "") };
+    }
+  }
+  return { content: "" };
+}
+
+function actionSaveNote_(body) {
+  var personId = String(body.personId);
+  var date = String(body.date);
+  var content = String(body.content);
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var rows = readObjects_(NOTES);
+    var found = false;
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i].personId) === personId && String(rows[i].date) === date) {
+        rows[i].content = content;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      rows.push({ personId: personId, date: date, content: content });
+    }
+    writeObjects_(NOTES, NOTE_COLS, rows);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true };
 }
 
 // Replace only the rows this person owns on this date; meetings they merely attend stay put.
@@ -336,6 +378,7 @@ function setupAndSeed() {
     TASK_TEXT_COLS,
   );
   writeObjects_(ENTRIES, ENTRY_COLS, buildSeedEntries_(), ENTRY_TEXT_COLS);
+  writeObjects_(NOTES, NOTE_COLS, [], []);
   SpreadsheetApp.getActive().toast("Cadence: tabs created and seeded.");
 }
 

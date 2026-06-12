@@ -25,6 +25,8 @@ export interface Backend {
   getEntries(date: string): Promise<Entry[]>;
   getDay(personId: string, date: string): Promise<Entry[]>;
   saveDay(personId: string, date: string, entries: Entry[]): Promise<void>;
+  getNote(personId: string, date: string): Promise<string>;
+  saveNote(personId: string, date: string, content: string): Promise<void>;
 }
 
 /** A task flattened to a single row — the neutral shape both backends store. */

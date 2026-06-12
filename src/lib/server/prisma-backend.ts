@@ -92,4 +92,19 @@ export const prismaBackend: Backend = {
       }),
     ]);
   },
+
+  async getNote(personId: string, date: string): Promise<string> {
+    const note = await prisma.note.findUnique({
+      where: { personId_date: { personId, date } },
+    });
+    return note?.content ?? "";
+  },
+
+  async saveNote(personId: string, date: string, content: string): Promise<void> {
+    await prisma.note.upsert({
+      where: { personId_date: { personId, date } },
+      update: { content },
+      create: { personId, date, content },
+    });
+  },
 };

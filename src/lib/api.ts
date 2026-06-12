@@ -32,6 +32,22 @@ export async function saveDayApi(personId: string, date: string, entries: Entry[
   if (!r.ok) throw new Error("Failed to save day");
 }
 
+export async function fetchNote(personId: string, date: string): Promise<string> {
+  const r = await fetch(`/api/notes?personId=${encodeURIComponent(personId)}&date=${encodeURIComponent(date)}`);
+  if (!r.ok) throw new Error("Failed to fetch note");
+  const data = await r.json();
+  return data.content || "";
+}
+
+export async function saveNoteApi(personId: string, date: string, content: string): Promise<void> {
+  const r = await fetch("/api/notes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ personId, date, content }),
+  });
+  if (!r.ok) throw new Error("Failed to save note");
+}
+
 /** Verify a PIN server-side. Returns the person, or null when the PIN is wrong. */
 export async function verifyPin(pin: string): Promise<PersonProfile | null> {
   const r = await fetch("/api/auth/pin", {

@@ -57,11 +57,20 @@ export const sheetsBackend: Backend = {
     return call<Entry[]>("getEntries", { date });
   },
 
-  getDay(personId: string, date: string) {
+  async getDay(personId: string, date: string): Promise<Entry[]> {
     return call<Entry[]>("getDay", { personId, date });
   },
 
   async saveDay(personId: string, date: string, entries: Entry[]): Promise<void> {
     await call("saveDay", { personId, date, entries });
+  },
+
+  async getNote(personId: string, date: string): Promise<string> {
+    const res = await call<{ content: string }>("getNote", { personId, date });
+    return res.content;
+  },
+
+  async saveNote(personId: string, date: string, content: string): Promise<void> {
+    await call("saveNote", { personId, date, content });
   },
 };
