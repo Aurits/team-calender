@@ -403,8 +403,8 @@ function Today({ personId, onSignOut, justSignedInPin, onDismissPinPrompt }: { p
             </Link>
           </div>
 
-          <div className="sticky-note overflow-visible p-0">
-            <div className="flex items-center justify-between px-5 pb-2 pt-5">
+          <div className="notes-panel overflow-hidden p-0">
+            <div className="flex items-center justify-between border-b border-hairline/50 px-5 py-3.5 bg-surface/30">
               <span className="overline flex items-center gap-2">
                 <span className="text-base">📝</span> Notes & Feedback
               </span>
@@ -414,11 +414,11 @@ function Today({ personId, onSignOut, justSignedInPin, onDismissPinPrompt }: { p
                 {noteSaving ? "Saving…" : "✓ Saved"}
               </span>
             </div>
-            <div className="sticky-lines px-5 pb-5 pt-1" style={{ minHeight: 120 }}>
+            <div className="px-5 pb-5 pt-4" style={{ minHeight: 140 }}>
               <NoteArea
                 value={noteContent}
                 onChange={handleNoteChange}
-                bullets={false}
+                bullets={true}
                 placeholder="Jot down thoughts, blockers, or feedback…"
               />
             </div>
