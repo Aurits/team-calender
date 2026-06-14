@@ -234,16 +234,32 @@ function Today({ personId, onSignOut, justSignedInPin, onDismissPinPrompt }: { p
     [personId],
   );
 
+  // Nudge to personalize the PIN only until they actually change it (tracked
+  // server-side via person.pinChanged, so it survives private sessions/devices).
+  // Hold off while the first-run welcome is still showing, so the two modals
+  // never stack on a brand-new user's first sign-in.
   useEffect(() => {
-    if (justSignedInPin && localStorage.getItem("pinPromptDismissed") !== "true") {
+    const welcomeSeen = (() => {
+      try { return localStorage.getItem("cadence:welcomeSeen") === "true"; } catch { return true; }
+    })();
+    if (justSignedInPin && welcomeSeen && person && person.pinChanged === false) {
       setShowChangePin(true);
     }
-  }, [justSignedInPin]);
+  }, [justSignedInPin, person]);
 
   useEffect(() => {
     const h = () => setShowChangePin(true);
     window.addEventListener("open-change-pin", h);
     return () => window.removeEventListener("open-change-pin", h);
+  }, []);
+
+  // First-run welcome guide (once per device).
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("cadence:welcomeSeen") !== "true") {
+        window.dispatchEvent(new CustomEvent("open-guide"));
+      }
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -325,7 +341,7 @@ function Today({ personId, onSignOut, justSignedInPin, onDismissPinPrompt }: { p
       onSignOut={onSignOut}
     >
       {children}
-      <ChangePinModal isOpen={showChangePin} onClose={() => { setShowChangePin(false); onDismissPinPrompt?.(); localStorage.setItem("pinPromptDismissed", "true"); }} initialOldPin={justSignedInPin} />
+      <ChangePinModal isOpen={showChangePin} onClose={() => { setShowChangePin(false); onDismissPinPrompt?.(); }} initialOldPin={justSignedInPin} />
     </PageFrame>
   );
 
@@ -445,6 +461,12 @@ function Today({ personId, onSignOut, justSignedInPin, onDismissPinPrompt }: { p
               <div className="col-span-2 lg:col-span-1">
                 <span className="overline mb-1 block lg:hidden">Task</span>
                 <Select value={r.taskId} onChange={(v) => selectTask(r.id, v)} placeholder="Select a task…" options={taskOpts} />
+                {r.taskId && taskRefs.find((x) => x.id === r.taskId)?.description ? (
+                  <div
+                    className="note-area mt-1.5 text-[11px] leading-snug text-muted"
+                    dangerouslySetInnerHTML={{ __html: taskRefs.find((x) => x.id === r.taskId)!.description! }}
+                  />
+                ) : null}
                 {conflictIds.has(r.id) && (
                   <span className="mt-1.5 inline-flex items-center gap-1.5 text-[11px] font-medium text-med-ink">
                     <span className="h-1.5 w-1.5 rounded-full bg-med" /> Overlaps another block

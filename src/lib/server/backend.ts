@@ -8,6 +8,8 @@ export interface PersonPublic {
   role: string;
   defaultPlace: string;
   tint: number;
+  /** True once the person has personalized their PIN — used to stop re-prompting them. */
+  pinChanged: boolean;
 }
 
 /**

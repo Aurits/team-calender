@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { PeopleProvider } from "@/lib/people";
 import { BackendBadge } from "@/components/BackendBadge";
+import { GuideHost } from "@/components/GuideHost";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body suppressHydrationWarning>
         <PeopleProvider>{children}</PeopleProvider>
         <BackendBadge />
+        <GuideHost />
       </body>
     </html>
   );

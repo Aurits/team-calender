@@ -8,6 +8,7 @@ export interface Person {
   role: string;
   defaultPlace: string;
   tint: number;
+  pinChanged?: boolean;
 }
 
 interface PeopleCtx {

@@ -7,6 +7,7 @@ import type { Priority } from "@/lib/types";
 import { initialsOf, priorityMeta, tintClass } from "@/lib/data";
 import { usePeople } from "@/lib/people";
 import { useTheme } from "@/lib/theme";
+import { changePinApi } from "@/lib/api";
 
 /* -------------------------------- icons -------------------------------- */
 
@@ -445,6 +446,15 @@ export function ProfileMenu({
           <button
             onClick={() => {
               setOpen(false);
+              window.dispatchEvent(new CustomEvent("open-guide"));
+            }}
+            className="w-full rounded-lg px-2.5 py-2 text-left text-sm text-ink transition-colors hover:bg-surface-2"
+          >
+            How it works
+          </button>
+          <button
+            onClick={() => {
+              setOpen(false);
               if (window.dispatchEvent) {
                 window.dispatchEvent(new CustomEvent("open-change-pin"));
               }
@@ -462,6 +472,69 @@ export function ProfileMenu({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ------------------------------ GuideModal ----------------------------- */
+
+/** A friendly "how it works" walkthrough, shown once on first run and from the menu. */
+export function GuideModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  if (!isOpen) return null;
+  const steps: { emoji: string; title: string; body: string }[] = [
+    {
+      emoji: "👋",
+      title: "Welcome to Cadence",
+      body: "One shared place that shows who is doing what, where, when, and how important for today.",
+    },
+    {
+      emoji: "📝",
+      title: "Today: plan your day",
+      body: "Add a row for each time block: pick a task, set the start, how long, where, and how important. Place and priority are filled in for you from the task, and you can change them anytime. Jot anything in the Notes panel.",
+    },
+    {
+      emoji: "📅",
+      title: "Calendar: see everyone",
+      body: "A grid of the whole team across the day, colored by priority. A block shared by several people is a meeting. This answers “where is everyone and what are they doing?” at a glance.",
+    },
+    {
+      emoji: "🗂️",
+      title: "Tasks: the work list",
+      body: "Managers set up Initiatives (L1) and the Workstreams (L2) under them, with priorities, places, and who’s involved. Everything you schedule comes from this list.",
+    },
+    {
+      emoji: "🔑",
+      title: "Your PIN",
+      body: "You sign in with a 4-digit PIN. The first time, you’ll be asked to change it to something only you know.",
+    },
+  ];
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/20 p-4 backdrop-blur-sm">
+      <div className="max-h-[85dvh] w-full max-w-2xl overflow-auto rounded-2xl bg-surface p-6 shadow-[0_12px_40px_rgba(0,0,0,0.12)] sm:p-8">
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="font-display text-2xl text-ink">How Cadence works</h2>
+          <button onClick={onClose} aria-label="Close" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-ink">
+            <X width={18} height={18} />
+          </button>
+        </div>
+        <p className="mt-1 text-sm text-muted">A quick tour. It takes about 30 seconds a day to keep your plan up to date.</p>
+
+        <ul className="mt-5 flex flex-col gap-3">
+          {steps.map((s) => (
+            <li key={s.title} className="flex gap-3 rounded-xl border border-hairline bg-surface-2/40 p-3.5">
+              <span className="text-xl leading-none">{s.emoji}</span>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-ink">{s.title}</div>
+                <p className="mt-0.5 text-[13px] leading-relaxed text-muted">{s.body}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-6 flex justify-end">
+          <button onClick={onClose} className="btn btn-primary">Got it</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -500,12 +573,10 @@ export function ChangePinModal({
     setSaving(true);
     setError("");
     try {
-      // use absolute path or alias for changePinApi
-      const { changePinApi } = await import("@/lib/api");
       await changePinApi(oldPin, newPin);
       onClose();
-    } catch (e: any) {
-      setError(e.message || "Failed to update PIN");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update PIN");
     } finally {
       setSaving(false);
     }

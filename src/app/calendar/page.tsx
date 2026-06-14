@@ -80,6 +80,7 @@ export default function CalendarPage() {
 
   const [dayEntries, setDayEntries] = useState<Entry[]>([]);
   const [taskTitles, setTaskTitles] = useState<Map<string, string>>(new Map());
+  const [taskDescs, setTaskDescs] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -87,8 +88,13 @@ export default function CalendarPage() {
       .load()
       .then((tree) => {
         const m = new Map<string, string>();
-        for (const t of flattenTasks(tree)) m.set(t.id, t.title);
+        const d = new Map<string, string>();
+        for (const t of flattenTasks(tree)) {
+          m.set(t.id, t.title);
+          if (t.description) d.set(t.id, t.description);
+        }
         setTaskTitles(m);
+        setTaskDescs(d);
       })
       .catch(() => {});
   }, []);
@@ -215,6 +221,7 @@ export default function CalendarPage() {
                         top={pad + lane * (blockH + gap)}
                         height={blockH}
                         title={taskTitles.get(e.taskId) ?? ""}
+                        desc={taskDescs.get(e.taskId)}
                         names={(e.attendees ?? []).map((id) => getPerson(id)?.name).filter((n): n is string => Boolean(n))}
                       />
                     ))}
@@ -331,21 +338,25 @@ function Block({
   top,
   height,
   title,
+  desc,
   names,
 }: {
   e: Entry;
   top: number;
   height: number;
   title: string;
+  desc?: string;
   names: string[];
 }) {
   const m = priorityMeta[e.priority as Priority];
   const isMeeting = (e.attendees?.length ?? 0) > 1;
   const note = e.note?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const taskDesc = desc?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   const showNote = height >= 56 && !!note;
   const showMeta = height >= 38;
   const tip = [
     title,
+    taskDesc,
     note,
     `${e.start}–${endOf(e)} · ${fmtDuration(e.durationMins)}`,
     `Place: ${e.place}`,

@@ -468,6 +468,7 @@ export default function ManagePage() {
                           </span>
                           <span className="text-sm text-ink">{c.title}</span>
                           <PriorityTag priority={c.priority} />
+                          <span className="rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] text-muted">L2</span>
                           {c.place && <span className="text-xs text-muted">· {c.place}</span>}
                           {fmtDeadline(c.deadline) && (
                             <span className="text-xs text-muted">· Due {fmtDeadline(c.deadline)}</span>

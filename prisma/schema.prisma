@@ -17,6 +17,7 @@ model Person {
   role         String
   defaultPlace String
   tint         Int
+  pinChanged   Boolean @default(false)
   entries      Entry[]
   notes        Note[]
 }

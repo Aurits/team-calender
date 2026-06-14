@@ -4,7 +4,7 @@ import type { Entry, Priority } from "@/lib/types";
 import type { Initiative } from "@/lib/tasks";
 import { buildTree, flattenTree, type Backend, type FlatTask, type PersonPublic } from "./backend";
 
-const PUBLIC = { id: true, name: true, role: true, defaultPlace: true, tint: true } as const;
+const PUBLIC = { id: true, name: true, role: true, defaultPlace: true, tint: true, pinChanged: true } as const;
 
 type DbTask = {
   id: string;
@@ -45,7 +45,7 @@ export const prismaBackend: Backend = {
   },
 
   async updatePin(personId: string, newPin: string): Promise<void> {
-    await prisma.person.update({ where: { id: personId }, data: { pin: newPin } });
+    await prisma.person.update({ where: { id: personId }, data: { pin: newPin, pinChanged: true } });
   },
 
   async getTasks(): Promise<Initiative[]> {

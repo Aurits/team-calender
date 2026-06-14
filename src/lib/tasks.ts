@@ -49,13 +49,14 @@ export interface TaskRef {
   label: string; // "Initiative › Workstream" or just the title
   priority: Priority;
   place: string;
+  description?: string;
 }
 export function flattenTasks(tree: Initiative[]): TaskRef[] {
   const out: TaskRef[] = [];
   for (const init of tree) {
-    out.push({ id: init.id, title: init.title, label: init.title, priority: init.priority, place: init.place });
+    out.push({ id: init.id, title: init.title, label: init.title, priority: init.priority, place: init.place, description: init.description });
     for (const c of init.children ?? []) {
-      out.push({ id: c.id, title: c.title, label: `${init.title} › ${c.title}`, priority: c.priority, place: c.place });
+      out.push({ id: c.id, title: c.title, label: `${init.title} › ${c.title}`, priority: c.priority, place: c.place, description: c.description });
     }
   }
   return out;

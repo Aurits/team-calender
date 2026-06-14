@@ -22,7 +22,7 @@ var TASKS = "Tasks";
 var ENTRIES = "Entries";
 var NOTES = "Notes";
 
-var PEOPLE_COLS = ["id", "pin", "name", "role", "defaultPlace", "tint"];
+var PEOPLE_COLS = ["id", "pin", "name", "role", "defaultPlace", "tint", "pinChanged"];
 var TASK_COLS = ["id", "level", "parentId", "title", "description", "priority", "deadline", "place", "assignees", "position"];
 var ENTRY_COLS = ["id", "personId", "taskId", "note", "date", "start", "durationMins", "place", "priority", "attendees"];
 var NOTE_COLS = ["personId", "date", "content"];
@@ -32,8 +32,8 @@ var NOTE_COLS = ["personId", "date", "content"];
 // leading zeros and "2026-06-30" / "09:00" never become Dates.
 var STYLE = {};
 STYLE[PEOPLE] = {
-  widths: [78, 70, 168, 132, 150, 64],
-  align: ["center", "center", "left", "left", "left", "center"],
+  widths: [78, 70, 168, 132, 150, 64, 96],
+  align: ["center", "center", "left", "left", "left", "center", "center"],
   mono: [1, 2, 6],
   text: [1, 2], // id, pin
   tab: "#6366F1",
@@ -155,6 +155,7 @@ function actionUpdatePin_(body) {
     for (var i = 0; i < rows.length; i++) {
       if (String(rows[i].id) === personId) {
         rows[i].pin = newPin;
+        rows[i].pinChanged = true;
         found = true;
         break;
       }
@@ -304,6 +305,7 @@ function toPersonPublic_(o) {
     role: String(o.role),
     defaultPlace: String(o.defaultPlace),
     tint: Number(o.tint) || 1,
+    pinChanged: o.pinChanged === true || String(o.pinChanged).toUpperCase() === "TRUE",
   };
 }
 
@@ -927,16 +929,16 @@ function setupAndSeed() {
 }
 
 var SEED_PEOPLE = [
-  { id: "demo", pin: "0000", name: "Demo User", role: "Guest", defaultPlace: "Main Office", tint: 1 },
-  { id: "p1", pin: "1111", name: "Andrew", role: "Engineer", defaultPlace: "Main Office", tint: 1 },
-  { id: "p2", pin: "2222", name: "Matsumoto", role: "Manager", defaultPlace: "Sugimoto", tint: 2 },
-  { id: "p3", pin: "3333", name: "Inaba", role: "Manager", defaultPlace: "Izumi", tint: 3 },
-  { id: "p4", pin: "4444", name: "Nate", role: "Manager", defaultPlace: "Main Office", tint: 4 },
-  { id: "p5", pin: "5555", name: "Prakhar", role: "Manager", defaultPlace: "Remote", tint: 5 },
-  { id: "p6", pin: "6666", name: "Nishinaga", role: "Manager", defaultPlace: "Main Office", tint: 1 },
-  { id: "p7", pin: "7777", name: "Kevin", role: "Engineer", defaultPlace: "Main Office", tint: 2 },
-  { id: "p8", pin: "8888", name: "Martin", role: "Engineer", defaultPlace: "Izumi", tint: 3 },
-  { id: "p9", pin: "9999", name: "Ambrose", role: "Engineer", defaultPlace: "Ogasawara Site", tint: 4 },
+  { id: "demo", pin: "0000", name: "Demo User", role: "Guest", defaultPlace: "Main Office", tint: 1, pinChanged: false },
+  { id: "p1", pin: "1111", name: "Andrew", role: "Engineer", defaultPlace: "Main Office", tint: 1, pinChanged: false },
+  { id: "p2", pin: "2222", name: "Matsumoto", role: "Manager", defaultPlace: "Sugimoto", tint: 2, pinChanged: false },
+  { id: "p3", pin: "3333", name: "Inaba", role: "Manager", defaultPlace: "Izumi", tint: 3, pinChanged: false },
+  { id: "p4", pin: "4444", name: "Nate", role: "Manager", defaultPlace: "Main Office", tint: 4, pinChanged: false },
+  { id: "p5", pin: "5555", name: "Prakhar", role: "Manager", defaultPlace: "Remote", tint: 5, pinChanged: false },
+  { id: "p6", pin: "6666", name: "Nishinaga", role: "Manager", defaultPlace: "Main Office", tint: 1, pinChanged: false },
+  { id: "p7", pin: "7777", name: "Kevin", role: "Engineer", defaultPlace: "Main Office", tint: 2, pinChanged: false },
+  { id: "p8", pin: "8888", name: "Martin", role: "Engineer", defaultPlace: "Izumi", tint: 3, pinChanged: false },
+  { id: "p9", pin: "9999", name: "Ambrose", role: "Engineer", defaultPlace: "Ogasawara Site", tint: 4, pinChanged: false },
 ];
 
 var SEED_TASKS = [
